@@ -8,12 +8,12 @@ import org.jsoup.nodes.Document;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class JobSearch extends Activity implements OnClickListener{
 	TextView view;
@@ -59,9 +59,12 @@ public class JobSearch extends Activity implements OnClickListener{
 		
 	    @Override
 	    protected void onPostExecute(String result) {
-	      view = (TextView) findViewById(R.id.textView);
+		    if (result.contains("Welcome")) {
+		    	Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
+		    }
+/*	      view = (TextView) findViewById(R.id.textView);
 	      view.setMovementMethod(new ScrollingMovementMethod());
-	      view.setText(result);
+	      view.setText(result);*/
 	    }
 		
 	}

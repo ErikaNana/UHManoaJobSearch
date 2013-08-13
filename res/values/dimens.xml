@@ -4,5 +4,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="textSize">20dp</dimen>
+    <dimen name="WelcomeTextSize">40dp</dimen>
 
 </resources>

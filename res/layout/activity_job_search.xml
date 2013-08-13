@@ -9,19 +9,59 @@
     android:orientation="vertical"
     android:gravity="center"
     tools:context=".JobSearch" >
-
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/welcomeText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_world"
+        android:text="@string/welcomeText"
         android:gravity="center"
-        android:textSize="@dimen/textSize"
+        android:textSize="@dimen/WelcomeTextSize"
         android:maxLines="1000"
         android:scrollbars="vertical" />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+	    <TextView
+	        android:id = "@+id/userNameText"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:text="@string/userNameText"
+	        android:textSize="@dimen/textSize"/>
+		<EditText
+		    android:id="@+id/inputUserName"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:inputType="text"
+		    android:hint="@string/userNameHint"
+		    android:textSize="@dimen/textSize" >
+			</EditText>
+	</LinearLayout>
+	    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+	    <TextView
+	        android:id = "@+id/passwordText"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:text="@string/passwordText"
+	        android:textSize="@dimen/textSize"/>
+		<EditText
+		    android:id="@+id/inputPassword"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:inputType="textWebPassword"
+		    android:hint="@string/passwordHint"
+		    android:textSize="@dimen/textSize" >
+			</EditText>
+	</LinearLayout>
 	<Button
 	    android:id="@+id/button"
 	    android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="@string/loginButtonText"
 	    />
 </LinearLayout>
