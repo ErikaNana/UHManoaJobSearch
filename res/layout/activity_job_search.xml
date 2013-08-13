@@ -59,7 +59,7 @@
 			</EditText>
 	</LinearLayout>
 	<Button
-	    android:id="@+id/button"
+	    android:id="@+id/loginButton"
 	    android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/loginButtonText"
