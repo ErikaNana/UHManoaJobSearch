@@ -15,11 +15,13 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="edu.uhmanoa.jobsearch.JobSearch"
+            android:name="edu.uhmanoa.jobsearch.MainStudentMenu">
+        </activity>
+        <activity
+            android:name="edu.uhmanoa.jobsearch.Login"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
