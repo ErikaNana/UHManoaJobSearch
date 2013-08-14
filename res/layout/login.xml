@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:text="@string/welcomeText"
         android:gravity="center"
-        android:textSize="@dimen/WelcomeTextSize"
+        android:textSize="@dimen/welcomeTextSize"
         android:maxLines="1000"
         android:scrollbars="vertical" />
     <LinearLayout

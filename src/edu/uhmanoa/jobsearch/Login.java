@@ -63,8 +63,10 @@ public class Login extends Activity implements OnClickListener{
 				//post to the login form
 				Connection.Response res = Jsoup.connect(urls[0])
 					    .data("module", "student")
-		    			.data("userName", urls[1])
-		    			.data("userPassword", urls[2])
+/*		    			.data("userName", urls[1])
+		    			.data("userPassword", urls[2])*/
+					    .data("userName", "enana")
+		    			.data("userPassword", "fUcktbs!1!")
 					    .method(Method.POST)
 					    .execute();
 
@@ -102,10 +104,11 @@ public class Login extends Activity implements OnClickListener{
 				String password = mPassword.getText().toString();
 				Log.w("js", "userName:  " + userName);
 				Log.w("password", "password:  " + password);
-				if (userName.isEmpty() || password.isEmpty()) {
+				//just for debugging
+/*				if (userName.isEmpty() || password.isEmpty()) {
 					showErrorDialog(NO_INPUT_ERROR);
 					return;
-				}
+				}*/
 				connectToWebsite connect = new connectToWebsite();
 				pd = new ProgressDialog(this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
                 pd.setTitle("Processing...");

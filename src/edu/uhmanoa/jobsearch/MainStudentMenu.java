@@ -1,7 +1,13 @@
 package edu.uhmanoa.jobsearch;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -11,11 +17,10 @@ public class MainStudentMenu extends Activity {
 	String mWelcomeText;
 	String mResponse;
 	String mCookie;
-	
+	String mUserName;
 	TextView mWelcomeUser;
 	TextView mResponseViewer;
 	
-	public static final String WELCOME_START = "Welcome, ";
 	public static final String COOKIE_TYPE = "JSESSIONID";
 	
 	@Override
@@ -36,6 +41,30 @@ public class MainStudentMenu extends Activity {
 		mResponseViewer.setMovementMethod(new ScrollingMovementMethod());
 		mResponseViewer.setText(mResponse);
 		
-		mWelcomeUser.setText(WELCOME_START);
+		ParseHtml parseHtml = new ParseHtml();
+		parseHtml.execute(new String[] {mResponse});
+	}
+	
+	private class ParseHtml extends AsyncTask <String, Void, String>{
+		
+		@Override
+		protected String doInBackground(String... html) {
+			Document doc = Jsoup.parse(html[0]);
+			Element text = doc.body();
+			//since the name is bolded, get the elements that are bolded
+			Elements strongElements = text.select("strong");
+			//name is the first element
+			Element nameElement = strongElements.first();
+			String nameHTML = nameElement.toString();
+			//parse the HTML
+			mUserName = Jsoup.parse(nameHTML).text();
+			return mUserName;
+		}
+	    @Override
+	    protected void onPostExecute(String response) {
+	    	Log.w("MSM", "text:  " + response);
+			mWelcomeUser.setText(mUserName);
+	    }
+		
 	}
 }
