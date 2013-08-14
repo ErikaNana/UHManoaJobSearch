@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
+<LinearLayout 
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    android:gravity="center_horizontal" >
+    
+    <TextView
+        android:id="@+id/welcomeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/welcomeMainTextSize"
+        android:text="@string/welcomeTextMain"/>
+
+    <TextView
+        android:id="@+id/welcomeUser"
+        android:layout_marginTop="-10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/welcomeMainTextSize"/>
+    
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+       	<TextView
+       	    android:id="@+id/keywordsText"
+       	    android:layout_width="wrap_content"
+       	    android:layout_height="match_parent"
+       	    android:gravity="center"
+       	    android:text="@string/keywordsText"
+       	    android:textSize="@dimen/textSize" />
+
+       	<LinearLayout
+       	    android:layout_width="fill_parent"
+        	android:layout_height="fill_parent">
+       	<EditText 
+       	    android:layout_width="fill_parent"
+       	    android:layout_height="wrap_content"
+       	    android:inputType="text"
+       	    android:gravity="center"
+       	    android:hint="@string/keywordsHint"
+       	    android:textSize="@dimen/hintTextSize"
+       	    />
+       	</LinearLayout>
+	</LinearLayout>
+	<LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+       	<TextView
+       	    android:id="@+id/jobProgramsText"
+       	    android:layout_width="wrap_content"
+       	    android:layout_height="match_parent"
+       	    android:gravity="center"
+       	    android:text="@string/jobProgramsText"
+       	    android:textSize="@dimen/textSize" />
+
+       	<LinearLayout
+       	    android:layout_width="fill_parent"
+        	android:layout_height="fill_parent">
+       	<Spinner
+		    android:id="@+id/jobProgramSpinner"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:spinnerMode="dialog" />
+       	</LinearLayout>
+	</LinearLayout>
+		<LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+       	<TextView
+       	    android:id="@+id/islandLocationText"
+       	    android:layout_width="wrap_content"
+       	    android:layout_height="match_parent"
+       	    android:gravity="center"
+       	    android:text="@string/islandLocationText"
+       	    android:textSize="@dimen/textSize" />
+
+       	<LinearLayout
+       	    android:layout_width="fill_parent"
+        	android:layout_height="fill_parent">
+       	<Spinner
+		    android:id="@+id/islandLocationSpinner"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:spinnerMode="dialog" />
+       	</LinearLayout>
+	</LinearLayout>
+		<LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+       	<TextView
+       	    android:id="@+id/campusLocationText"
+       	    android:layout_width="wrap_content"
+       	    android:layout_height="match_parent"
+       	    android:gravity="center"
+       	    android:text="@string/campuseLocationText"
+       	    android:textSize="@dimen/textSize" />
+
+       	<LinearLayout
+       	    android:layout_width="fill_parent"
+        	android:layout_height="fill_parent">
+       	<Spinner
+		    android:id="@+id/campusLocationSpinner"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:spinnerMode="dialog" />
+       	</LinearLayout>
+	</LinearLayout>
+		<LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+       	<TextView
+       	    android:id="@+id/categoryText"
+       	    android:layout_width="wrap_content"
+       	    android:layout_height="match_parent"
+       	    android:gravity="center"
+       	    android:text="@string/categoryText"
+       	    android:textSize="@dimen/textSize" />
+
+       	<LinearLayout
+       	    android:layout_width="fill_parent"
+        	android:layout_height="fill_parent">
+       	<Spinner
+		    android:id="@+id/categorySpinner"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:spinnerMode="dialog" />
+       	</LinearLayout>
+	</LinearLayout>
+		<LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+       	<TextView
+       	    android:id="@+id/classificationText"
+       	    android:layout_width="wrap_content"
+       	    android:layout_height="match_parent"
+       	    android:gravity="center"
+       	    android:text="@string/classificationText"
+       	    android:textSize="@dimen/textSize" />
+
+       	<LinearLayout
+       	    android:layout_width="fill_parent"
+        	android:layout_height="fill_parent">
+       	<Spinner
+		    android:id="@+id/classificationSpinner"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:spinnerMode="dialog" />
+       	</LinearLayout>
+	</LinearLayout>
+		<LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+       	<TextView
+       	    android:id="@+id/postingsText"
+       	    android:layout_width="wrap_content"
+       	    android:layout_height="match_parent"
+       	    android:gravity="center"
+       	    android:text="@string/postingsText"
+       	    android:textSize="@dimen/textSize" />
+
+       	<LinearLayout
+       	    android:layout_width="fill_parent"
+        	android:layout_height="fill_parent">
+       	<Spinner
+		    android:id="@+id/postingsSpinner"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:spinnerMode="dialog" />
+       	</LinearLayout>
+	</LinearLayout>
+		<LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+       	<TextView
+       	    android:id="@+id/eligibilityText"
+       	    android:layout_width="wrap_content"
+       	    android:layout_height="match_parent"
+       	    android:gravity="center"
+       	    android:text="@string/eligibilityText"
+       	    android:textSize="@dimen/textSize" />
+
+       	<LinearLayout
+       	    android:layout_width="fill_parent"
+        	android:layout_height="fill_parent">
+       	<Spinner
+		    android:id="@+id/eligibilitySpinner"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:spinnerMode="dialog" />
+       	</LinearLayout>
+	</LinearLayout>
+		<LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+       	<TextView
+       	    android:id="@+id/jobNumberText"
+       	    android:layout_width="wrap_content"
+       	    android:layout_height="match_parent"
+       	    android:gravity="center"
+       	    android:text="@string/jobNumberText"
+       	    android:textSize="@dimen/textSize" />
+		<EditText
+		    android:id="@+id/jobNumberInput"
+		    android:layout_width="0dp"
+		    android:layout_weight="0.3"
+		    android:layout_height="wrap_content"
+		    android:inputType="number"
+		    android:hint="@string/jobNumberHint"
+		    android:gravity="center"
+		    />
+       	<TextView
+       	    android:id="@+id/jobNumberEndText"
+       	    android:layout_width="wrap_content"
+       	    android:layout_height="match_parent"
+       	    android:text="@string/jobNumberEnding"
+       	    android:gravity="center"
+       		android:textSize="@dimen/textSize" />
+	</LinearLayout>
+	<Button
+	    android:id="@+id/searchButton"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:text="@string/searchButtonText"
+	    android:textSize="@dimen/textSize" />
+</LinearLayout>
+</ScrollView>

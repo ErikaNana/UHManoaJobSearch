@@ -10,4 +10,122 @@
     <string name="passwordHint">Password</string>
 	<string name="loginButtonText">Login</string>
 	<string name="welcomeTextMain">Welcome, </string>
+	<string name = "keywordsText">Keyword(s):  </string>
+	<string name = "keywordsHint">Search</string>
+	<string name = "jobProgramsText">Job Program:  </string>
+	<string name = "islandLocationText">Island Location:  </string>
+	<string name = "campuseLocationText">Campus Location:  </string>
+	<string name = "categoryText">Category:  </string>
+	<string name = "classificationText">Classification:  </string>
+	<string name = "postingsText">Postings Since:  </string>
+	<string name = "eligibilityText">Eligibility:  </string>
+	<string name = "jobNumberText">Job Number:  </string>
+	<string name = "jobNumberEnding">-AXX</string>
+	<string name = "jobNumberHint">Number</string>
+	<string name = "searchButtonText">Search</string>
+	<string-array name="jobProgramArray">
+		<item>All Programs</item>
+		<item>Full Time (FT)</item>
+		<item>Part Time (PT)</item>
+		<item>UH</item>
+		<item>UH &amp; FWS</item>
+		<item>FWS</item>
+		<item>NONUH</item>
+		<item>COOP</item>
+		<item>INTERN</item>
+	</string-array>
+	<string-array  name= "islandLocationArray">
+	    <item>All Locations</item>
+	    <item>Oahu</item>
+	    <item>Hawaii</item>
+	    <item>Kauai</item>
+	    <item>Lanai</item>
+	    <item>Maui</item>
+	    <item>Molokai</item>
+	    <item>Other</item>
+	</string-array>
+	<string-array name = "campusLocationArray">
+	    <item>All Campuses</item>
+	    <item>UH Manoa</item>
+	    <item>UH Hilo</item>
+	    <item>UH West Oahu</item>
+	    <item>UH Maui College</item>
+	    <item>Hawaii CC</item>
+	    <item>Honolulu CC</item>
+	    <item>Kapiolani CC</item>
+	    <item>Kauai CC</item>
+	    <item>Leeward CC</item>
+	    <item>Windward CC</item>
+	</string-array>
+	<string-array name = "categoryArray">
+	    <item>All Categories</item>
+	    <item>Administrative/Clerical</item>
+		<item>Agriculture</item>
+		<item>Aquaculture</item>
+		<item>Architecture</item>
+		<item>Art</item>
+		<item>Automotive</item>
+		<item>Business</item>
+		<item>Child Care</item>
+		<item>Communication</item>
+		<item>Computer</item>
+		<item>Construction Trades</item>
+		<item>Culinary Arts</item>
+		<item>Education</item>
+		<item>Electrical</item>
+		<item>Electronics</item>
+		<item>Emergency Medical Services</item>
+		<item>Engineering</item>
+		<item>Fashion Tech</item>
+		<item>Finance</item>
+		<item>Fine Arts</item>
+		<item>Food Service</item>
+		<item>Graphic Arts</item>
+		<item>Groundskeeping/Janitorial</item>
+		<item>Health/Medical</item>
+		<item>Human Resources</item>
+		<item>Human Services</item>
+		<item>Janitorial/Custodial</item>
+		<item>Journalism</item>
+		<item>Laborer</item>
+		<item>Language</item>
+		<item>Law Enforcement/Judicial</item>
+		<item>Library</item>
+		<item>Mail Processing</item>
+		<item>Marketing</item>
+		<item>Mathematics Statistics</item>
+		<item>Media</item>
+		<item>Miscellaneous</item>
+		<item>Performing Arts</item>
+		<item>Receptionist</item>
+		<item>Research</item>
+		<item>Retail</item>
+		<item>Science</item>
+		<item>Social Services</item>
+		<item>Sports/Recreation</item>
+		<item>Student Activities</item>
+		<item>Sustainability</item>
+		<item>Switch Board Operator</item>
+		<item>Technical/Trades</item>
+		<item>Tourism/Hospitality</item>
+		<item>Tutoring</item>
+	</string-array>
+	<string-array name = "classifcationsArray">
+	    <item>All Classifications</item>
+	    <item>Summer Only</item>
+		<item>Nights</item>
+		<item>Weekends</item>
+		<item>Nights &amp; Weekends</item>
+	</string-array>
+	<string-array name = "postingsArray">
+	    <item>All Postings</item>
+	    <item>Today</item>
+		<item>Yesterday</item>
+		<item>Last week</item>
+		<item>Last month</item>
+	</string-array>
+	<string-array name = "eligibilityArray">
+		<item>All Jobs</item>
+		<item>Jobs that I am eligible for</item>
+	</string-array>
 </resources>

@@ -32,7 +32,7 @@ public class Login extends Activity implements OnClickListener{
 	Context mContext;
 	ProgressDialog pd;
 	
-	public static final String LOGIN_URL = "https://sece.its.hawaii.edu/sece/stdLogin.do";
+	public static final String POST_LOGIN_URL = "https://sece.its.hawaii.edu/sece/stdLogin.do";
 	public static final String COOKIE_TYPE = "JSESSIONID";
 	
 	/**Values for data passed into the intent*/
@@ -117,7 +117,7 @@ public class Login extends Activity implements OnClickListener{
                 pd.setCancelable(false);
                 pd.setIndeterminate(true);
                 pd.show();
-				connect.execute(new String[] {LOGIN_URL, userName, password});
+				connect.execute(new String[] {POST_LOGIN_URL, userName, password});
 			}
 		}
 	}
