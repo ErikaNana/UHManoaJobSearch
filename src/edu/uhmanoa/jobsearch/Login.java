@@ -111,7 +111,7 @@ public class Login extends Activity implements OnClickListener{
 				}*/
 				connectToWebsite connect = new connectToWebsite();
 				pd = new ProgressDialog(this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-                pd.setTitle("Processing...");
+                pd.setTitle("Connecting...");
                 //make this a random fact later.  haha.
                 pd.setMessage("Please wait.");
                 pd.setCancelable(false);

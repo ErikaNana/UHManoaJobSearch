@@ -1,26 +1,41 @@
 package edu.uhmanoa.jobsearch;
 
+import java.io.IOException;
+import java.util.HashMap;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-public class MainStudentMenu extends Activity {
+public class MainStudentMenu extends Activity implements OnClickListener, OnItemSelectedListener {
 	String mWelcomeText;
 	String mResponse;
-	String mCookie;
+	String mCookieValue;
 	String mUserName;
 	TextView mWelcomeUser;
 	TextView mResponseViewer;
+	Button mSearchButton;
+	ProgressDialog pd;
+	
+	EditText mSearchBox;
+	EditText mJobNumberBox;
 	
 	Spinner mJobProgramSpinner;
 	Spinner mLocationsSpinner;
@@ -29,6 +44,20 @@ public class MainStudentMenu extends Activity {
 	Spinner mClassificationSpinner;
 	Spinner mPostingsSpinner;
 	Spinner mEligibilitySpinner;
+	
+	/**Option that is selected from spinners that will be posted*/
+	String mOptionJobProgram;
+	String mOptionIslandLocation;
+	String mOptionCampusLocation;
+	String mOptionCategory;
+	String mOptionClassification;
+	String mOptionPostings;
+	String mOptionsEligibility;
+	
+	/**Final input values before posting*/
+	String mKeywords;
+	String mJobNumber;
+	
 	
 	public static final String COOKIE_TYPE = "JSESSIONID";
 	public static final String JOB_SEARCH_POST_URL = "https://sece.its.hawaii.edu/sece/stdJobSearchAction.do";
@@ -48,12 +77,19 @@ public class MainStudentMenu extends Activity {
 		
 		Intent thisIntent = this.getIntent();
 		//get the cookie for this session
-		mCookie = thisIntent.getStringExtra(Login.COOKIE_VALUE);
+		mCookieValue = thisIntent.getStringExtra(Login.COOKIE_VALUE);
 		mResponse = thisIntent.getStringExtra(Login.RESPONSE_STRING);
 		
 		mUserName = "";
-		Log.w("search", "cookie value:  " + mCookie);
+		Log.w("search", "cookie value:  " + mCookieValue);
 		mWelcomeUser = (TextView) findViewById(R.id.welcomeUser);
+		mSearchButton = (Button) findViewById(R.id.searchButton);
+		mSearchButton.setOnClickListener(this);
+		//inflate and set default values
+		mSearchBox = (EditText) findViewById(R.id.searchBox);
+		mJobNumberBox = (EditText) findViewById(R.id.jobNumberInput);
+		mKeywords = "";
+		mJobNumber = "";
 		
 		//get the name of the person
 		ParseHtml parseHtml = new ParseHtml();
@@ -94,13 +130,29 @@ public class MainStudentMenu extends Activity {
 				mUserName = Jsoup.parse(nameHTML).text();
 				return mUserName;
 			}
+			else { //post the search criteria
+				Document doc = null;
+				try {
+					doc = Jsoup.connect(html[0])
+								   .cookie(COOKIE_TYPE, mCookieValue)
+								   .data(getSearchMap())
+								   .post();
+					Log.w("MSTD", "response:  " + doc.text());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			return null;
 		}
 	    @Override
 	    protected void onPostExecute(String response) {
-	    	if (response != null) {
+	    	if (mWelcomeUser.getText().toString().isEmpty()) {
 		    	Log.w("MSM", "text:  " + response);
 				mWelcomeUser.setText(mUserName);
+	    	}
+	    	if (pd != null) {
+		    	pd.dismiss();
 	    	}
 	    }
 		
@@ -147,5 +199,109 @@ public class MainStudentMenu extends Activity {
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		// Apply the adapter to the spinner
 		spinner.setAdapter(adapter);
+		spinner.setOnItemSelectedListener(this);
+	}
+
+	@Override
+	public void onItemSelected(AdapterView<?> parent, View view, int pos,
+			long id) {
+		switch (parent.getId()) {
+			case R.id.jobProgramSpinner:{
+				Log.w("MSM", "Job program spinner");
+				String option = (String) parent.getItemAtPosition(pos);
+				Log.w("MSM", "item:  " + option);
+				mOptionJobProgram = Utils.getFromProgramHashMap(option);
+				Log.w("MSM", "value:  " + mOptionJobProgram);
+				break;
+			}
+			case R.id.islandLocationSpinner:{
+				Log.w("MSM", "island location spinner");
+				String option = (String) parent.getItemAtPosition(pos);
+				Log.w("MSM", "item:  " + option);
+				mOptionIslandLocation = Utils.getFromIslandOptionMap(option);
+				Log.w("MSM", "value:  " + mOptionIslandLocation);
+				break;
+			}
+			case R.id.campusLocationSpinner:{
+				Log.w("MSM", "campus location spinner");
+				String option = (String) parent.getItemAtPosition(pos);
+				Log.w("MSM", "item:  " + option);
+				mOptionCampusLocation = Utils.getFromCampusOptionMap(option);
+				Log.w("MSM", "value:  " + mOptionCampusLocation);
+				break;
+			}
+			case R.id.categorySpinner:{
+				Log.w("MSM", "category spinner");
+				String option = (String) parent.getItemAtPosition(pos);
+				Log.w("MSM", "item:  " + option);
+				mOptionCategory = Utils.getFromCategoryOptionMap(option);
+				Log.w("MSM", "value:  " + mOptionCategory);
+				break;
+			}
+			case R.id.classificationSpinner:{
+				Log.w("MSM", "classification spinner");
+				String option = (String) parent.getItemAtPosition(pos);
+				Log.w("MSM", "item:  " + option);
+				mOptionClassification = Utils.getFromClassificationOptionMap(option);
+				Log.w("MSM", "value:  " + mOptionClassification);
+				break;
+			}
+			case R.id.postingsSpinner:{
+				Log.w("MSM", "postings spinner");
+				String option = (String) parent.getItemAtPosition(pos);
+				Log.w("MSM", "item:  " + option);
+				mOptionPostings = Utils.getFromPostingsOptionMap(option);
+				Log.w("MSM", "value:  " + mOptionPostings);
+				break;
+			}
+			case R.id.eligibilitySpinner:{
+				Log.w("MSM", "eligibility spinner");
+				String option = (String) parent.getItemAtPosition(pos);
+				Log.w("MSM", "item:  " + option);
+				mOptionsEligibility = Utils.getFromEligibilityOptionMap(option);
+				Log.w("MSM", "value:  " + mOptionsEligibility);
+				break;
+			}
+		}
+	}
+
+	@Override
+	public void onNothingSelected(AdapterView<?> parent) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onClick(View view) {
+		if (view.getId() == R.id.searchButton) {
+			//get the params
+			mKeywords = mSearchBox.getText().toString();
+			mJobNumber = mJobNumberBox.getText().toString();
+			//post the params
+			ParseHtml parseHtml = new ParseHtml();
+			parseHtml.execute(new String[] {JOB_SEARCH_POST_URL});
+			pd = new ProgressDialog(this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+            pd.setTitle("Connecting...");
+            //make this a random fact later.  haha.
+            pd.setMessage("Please wait.");
+            pd.setCancelable(false);
+            pd.setIndeterminate(true);
+            pd.show();
+		}		
+	}
+	public HashMap<String,String> getSearchMap(){
+		HashMap<String,String> map = new HashMap<String, String>();
+		map.put("action", "search");
+		map.put("keywords", mKeywords);
+		map.put("program", mOptionJobProgram);
+		map.put("island", mOptionIslandLocation);
+		map.put("campus", mOptionCampusLocation);
+		map.put("categories", mOptionCategory);
+		map.put("specialClassification", mOptionClassification);
+		map.put("postSince", mOptionPostings);
+		map.put("limitEligibile", mOptionsEligibility);
+		map.put("jobNumber", mJobNumber);
+		map.put("locArea", "stdMainMenu");
+		return map;
 	}
 }
