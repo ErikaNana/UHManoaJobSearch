@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.webkit.WebView;
 import android.widget.TextView;
 
@@ -58,9 +59,10 @@ public class SearchResults extends Activity {
 		//get the job title
 		String jobTitle = job.select("a[href]").get(0).text();
 		//get the job description preview
-		String totalText = attributes.get(0).text();
-		String jobDescrip = totalText.replace(jobTitle, "");
-		jobDescrip = jobDescrip.replace("[more]","");
+		job.select("a[href]").remove(); //remove the links
+		String jobDescrip = attributes.get(0).text();
+		jobDescrip = jobDescrip.replace("[]","");
+		Log.w("SR", jobDescrip);
 
 		//get the rest of the attributes
 		String jobProgram = attributes.get(1).text();
@@ -70,6 +72,6 @@ public class SearchResults extends Activity {
 		String jobRefNumber = attributes.get(5).text();
 		String jobSkillMatch = attributes.get(6).text();
 		return new Job(jobTitle, jobDescrip, jobProgram, jobPay, jobCategory, 
-				jobLocation, jobRefNumber, jobSkillMatch);
+				jobLocation, jobRefNumber, jobSkillMatch); 
 	}
 }
