@@ -11,13 +11,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.webkit.WebView;
 import android.widget.TextView;
 
 public class SearchResults extends Activity {
 	String mCookie;
 	String mResponse;
-	WebView mResponseWindow;
 	TextView mResponseText;
 	
 	@SuppressLint("SetJavaScriptEnabled")
@@ -48,11 +46,6 @@ public class SearchResults extends Activity {
 				      newJob.mRefNumber + "\n" + newJob.mSkillMatches + "\n" + "\n";
 			mResponseText.setText(jobText);
 		}		
-		/*//load the WebView for debugging
-		mResponseWindow = (WebView) findViewById(R.id.webViewWindow);
-		mResponseWindow.getSettings().setJavaScriptEnabled(true);
-		mResponseWindow.setWebViewClient(new WebViewClient());
-		mResponseWindow.loadData(mResponse, "text/html", "utf-8");*/
 	}
 	public Job createJob(Element job) {
 		Elements attributes = job.getElementsByTag("td"); //7 attributes

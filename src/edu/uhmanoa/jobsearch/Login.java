@@ -1,8 +1,5 @@
 package edu.uhmanoa.jobsearch;
 
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-
 import org.jsoup.Connection;
 import org.jsoup.Connection.Method;
 import org.jsoup.Jsoup;
@@ -16,12 +13,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 public class Login extends Activity implements OnClickListener{
 	
@@ -62,6 +59,7 @@ public class Login extends Activity implements OnClickListener{
 		
 		@Override
 		protected String doInBackground(String... urls) {
+			Log.w("Login", "connecting");
 			Document doc = null;
 			try {
 				//post to the login form
@@ -83,27 +81,28 @@ public class Login extends Activity implements OnClickListener{
 					Log.w("search", "response:  " + mCookieValue);
 					
 			} 
-			catch (IOException e) {
-				if (e instanceof SocketTimeoutException) {
-					showErrorDialog(CONNECTION_ERROR);
-					Log.w("Login", "CONNECTION ERROR");
-				}
+			catch (Exception e) { //catch all exceptions
 				e.printStackTrace();
 			}
 			return mLoginResponse;
 		}
 	    @Override
 	    protected void onPostExecute(String response) {
-	    	pd.dismiss();
-		    if (response.contains("Welcome")) {
-		    	Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
-		    	launchMainStudentMenu();
-		    }
-		    else {
-		    	showErrorDialog(WRONG_INPUT_ERROR);
-		    }
+	    	if (pd != null) {
+		    	pd.dismiss();
+	    	}
+	    	if (response != null) {
+			    if (response.contains("Welcome")) {
+			    	launchMainStudentMenu();
+			    }
+			    else {
+			    	showErrorDialog(WRONG_INPUT_ERROR);
+			    }
+	    	}
+	    	else { //wasn't able to connect at all
+	    		showErrorDialog(CONNECTION_ERROR);
+	    	}
 	    }
-		
 	}
 
 	@Override
@@ -167,15 +166,24 @@ public class Login extends Activity implements OnClickListener{
 				break;
 			}
 			case CONNECTION_ERROR:{
-				builder.setMessage("Connection failed.  Try again?");
-				builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				builder.setMessage("Connection failed.  Please check your internet connection.");
+				builder.setPositiveButton("Check settings", new DialogInterface.OnClickListener() {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						connectToWebsite connect = new connectToWebsite();
-						connect.execute(new String[] {POST_LOGIN_URL, mUserName, mPassword});
+						pd.dismiss();
+						Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+						startActivity(intent);
 					}
 				});
+				builder.setNegativeButton("Quit", new DialogInterface.OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						finish();
+					}
+				});
+				break;
 			}
 		}
 

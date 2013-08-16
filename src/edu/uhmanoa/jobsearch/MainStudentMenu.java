@@ -1,6 +1,5 @@
 package edu.uhmanoa.jobsearch;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 import org.jsoup.Jsoup;
@@ -9,11 +8,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -141,9 +141,9 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 								   .data(getSearchMap())
 								   .post();
 					mResponse = doc.toString();
+					return mResponse;
 					/*//Log.w("MSTD", "response:  " + doc.text());*/
-				} catch (IOException e) {
-					Log.w("MSM", "IO EXCEPTION:  " + e.getMessage());
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -155,10 +155,17 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 		    	//Log.w("MSM", "text:  " + response);
 				mWelcomeUser.setText(mUserName);
 	    	}
-	    	if (pd != null) {
-		    	pd.dismiss();
-		    	//start the search activity
-		    	launchSearchResults();
+	    	else {
+		    	if (pd != null) {
+			    	pd.dismiss();
+		    	}
+		    	if (response != null) {
+			    	//start the search activity
+			    	launchSearchResults();
+		    	}
+		    	else { //exception thrown
+		    		showErrorDialog();
+		    	}
 	    	}
 	    }
 		
@@ -284,15 +291,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 			mKeywords = mSearchBox.getText().toString();
 			mJobNumber = mJobNumberBox.getText().toString();
 			//post the params
-			ParseHtml parseHtml = new ParseHtml();
-			parseHtml.execute(new String[] {JOB_SEARCH_POST_URL});
-			pd = new ProgressDialog(this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-            pd.setTitle("Connecting...");
-            //make this a random fact later.  haha.
-            pd.setMessage("Please wait.");
-            pd.setCancelable(false);
-            pd.setIndeterminate(true);
-            pd.show();
+			postParams();
 		}		
 	}
 	public HashMap<String,String> getSearchMap(){
@@ -316,5 +315,44 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 		launchStudentMenu.putExtra(Login.COOKIE_VALUE, mCookieValue);
 		launchStudentMenu.putExtra(SEARCH_RESPONSE_STRING, mResponse);
     	startActivity(launchStudentMenu);
+	}
+	
+	public void postParams() {
+		ParseHtml parseHtml = new ParseHtml();
+		parseHtml.execute(new String[] {JOB_SEARCH_POST_URL});
+		pd = new ProgressDialog(this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+        pd.setTitle("Connecting...");
+        //make this a random fact later.  haha.
+        pd.setMessage("Please wait.");
+        pd.setCancelable(false);
+        pd.setIndeterminate(true);
+        pd.show();
+	}
+	
+	public void showErrorDialog() {
+		AlertDialog.Builder builder=  new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK)
+									      .setTitle(R.string.app_name);
+		
+		builder.setMessage("Connection error.  Try again?");
+		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				postParams();
+			}
+		});
+		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				return;
+			}
+		});
+		AlertDialog dialog = builder.create();
+		//so dialog doesn't get closed when touched outside of it
+		dialog.setCanceledOnTouchOutside(false);
+		//so dialog doesn't get dismissed by back button
+		dialog.setCancelable(false);
+		dialog.show();
 	}
 }
