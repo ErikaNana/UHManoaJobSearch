@@ -1,6 +1,7 @@
 package edu.uhmanoa.jobsearch;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 
 import org.jsoup.Connection;
 import org.jsoup.Connection.Method;
@@ -27,10 +28,12 @@ public class Login extends Activity implements OnClickListener{
 	Button mLoginButton;
 	String mCookieValue;
 	String mLoginResponse;
-	EditText mUserName;
-	EditText mPassword;
+	EditText mUserNameBox;
+	EditText mPasswordBox;
 	Context mContext;
 	ProgressDialog pd;
+	String mUserName;
+	String mPassword;
 	
 	public static final String POST_LOGIN_URL = "https://sece.its.hawaii.edu/sece/stdLogin.do";
 	public static final String COOKIE_TYPE = "JSESSIONID";
@@ -39,9 +42,10 @@ public class Login extends Activity implements OnClickListener{
 	public static final String COOKIE_VALUE = "cookie value";
 	public static final String RESPONSE_STRING = "response string";
 	
-	/**Error codes for checking login information*/
+	/**Error codes for checking login information and connect*/
 	public static final int NO_INPUT_ERROR = 1;
 	public static final int WRONG_INPUT_ERROR = 2;
+	public static final int CONNECTION_ERROR = 3;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -50,8 +54,8 @@ public class Login extends Activity implements OnClickListener{
 		mLoginButton = (Button) findViewById(R.id.loginButton);
 		mLoginButton.setOnClickListener(this);
 		
-		mUserName = (EditText) findViewById(R.id.inputUserName);
-		mPassword = (EditText) findViewById(R.id.inputPassword);
+		mUserNameBox = (EditText) findViewById(R.id.inputUserName);
+		mPasswordBox = (EditText) findViewById(R.id.inputPassword);
 	}
 
 	private class connectToWebsite extends AsyncTask <String, Void, String>{
@@ -63,6 +67,7 @@ public class Login extends Activity implements OnClickListener{
 				//post to the login form
 				Connection.Response res = Jsoup.connect(urls[0])
 					    .data("module", "student")
+					    .timeout(3000)
 /*		    			.data("userName", urls[1])
 		    			.data("userPassword", urls[2])*/
 					    .data("userName", "enana")
@@ -77,7 +82,12 @@ public class Login extends Activity implements OnClickListener{
 					mCookieValue = res.cookie(COOKIE_TYPE);
 					Log.w("search", "response:  " + mCookieValue);
 					
-			} catch (IOException e) {
+			} 
+			catch (IOException e) {
+				if (e instanceof SocketTimeoutException) {
+					showErrorDialog(CONNECTION_ERROR);
+					Log.w("Login", "CONNECTION ERROR");
+				}
 				e.printStackTrace();
 			}
 			return mLoginResponse;
@@ -100,10 +110,10 @@ public class Login extends Activity implements OnClickListener{
 	public void onClick(View view) {
 		switch(view.getId()) {
 			case R.id.loginButton:{
-				String userName = mUserName.getText().toString();
-				String password = mPassword.getText().toString();
-				Log.w("js", "userName:  " + userName);
-				Log.w("password", "password:  " + password);
+				mUserName = mUserNameBox.getText().toString();
+				mPassword = mPasswordBox.getText().toString();
+				Log.w("js", "userName:  " + mUserName);
+				Log.w("password", "password:  " + mPassword);
 				//just for debugging
 /*				if (userName.isEmpty() || password.isEmpty()) {
 					showErrorDialog(NO_INPUT_ERROR);
@@ -117,7 +127,7 @@ public class Login extends Activity implements OnClickListener{
                 pd.setCancelable(false);
                 pd.setIndeterminate(true);
                 pd.show();
-				connect.execute(new String[] {POST_LOGIN_URL, userName, password});
+				connect.execute(new String[] {POST_LOGIN_URL, mUserName, mPassword});
 			}
 		}
 	}
@@ -136,10 +146,10 @@ public class Login extends Activity implements OnClickListener{
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						//reset both fields
-						mUserName.setText("");
-						mPassword.setText("");
+						mUserNameBox.setText("");
+						mPasswordBox.setText("");
 						//shift focus back to user name field
-						mUserName.requestFocus();
+						mUserNameBox.requestFocus();
 						return;
 					}
 				});
@@ -155,6 +165,17 @@ public class Login extends Activity implements OnClickListener{
 					}
 				});
 				break;
+			}
+			case CONNECTION_ERROR:{
+				builder.setMessage("Connection failed.  Try again?");
+				builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						connectToWebsite connect = new connectToWebsite();
+						connect.execute(new String[] {POST_LOGIN_URL, mUserName, mPassword});
+					}
+				});
 			}
 		}
 

@@ -30,7 +30,6 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 	String mCookieValue;
 	String mUserName;
 	TextView mWelcomeUser;
-	TextView mResponseViewer;
 	Button mSearchButton;
 	ProgressDialog pd;
 	
@@ -61,6 +60,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 	
 	public static final String COOKIE_TYPE = "JSESSIONID";
 	public static final String JOB_SEARCH_POST_URL = "https://sece.its.hawaii.edu/sece/stdJobSearchAction.do";
+	public static final String SEARCH_RESPONSE_STRING = "search response string";
 	
 	public static final int JOB_SPINNER = 1;
 	public static final int ISLAND_SPINNER = 2;
@@ -81,7 +81,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 		mResponse = thisIntent.getStringExtra(Login.RESPONSE_STRING);
 		
 		mUserName = "";
-		Log.w("search", "cookie value:  " + mCookieValue);
+		//Log.w("search", "cookie value:  " + mCookieValue);
 		mWelcomeUser = (TextView) findViewById(R.id.welcomeUser);
 		mSearchButton = (Button) findViewById(R.id.searchButton);
 		mSearchButton.setOnClickListener(this);
@@ -118,7 +118,8 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 		@Override
 		protected String doInBackground(String... html) {
 			//if no userName, get it
-			if (mUserName.isEmpty()) {
+			if (mWelcomeUser.getText().toString().isEmpty()) {
+				//Log.w("MSM", "User name is empty");
 				Document doc = Jsoup.parse(html[0]);
 				Element text = doc.body();
 				//since the name is bolded, get the elements that are bolded
@@ -128,18 +129,21 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 				String nameHTML = nameElement.toString();
 				//parse the HTML
 				mUserName = Jsoup.parse(nameHTML).text();
+				//Log.w("MSM", "mUserName is:  " + mUserName);
 				return mUserName;
 			}
 			else { //post the search criteria
 				Document doc = null;
 				try {
 					doc = Jsoup.connect(html[0])
+								   .timeout(5000)
 								   .cookie(COOKIE_TYPE, mCookieValue)
 								   .data(getSearchMap())
 								   .post();
-					Log.w("MSTD", "response:  " + doc.text());
+					mResponse = doc.toString();
+					/*//Log.w("MSTD", "response:  " + doc.text());*/
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
+					Log.w("MSM", "IO EXCEPTION:  " + e.getMessage());
 					e.printStackTrace();
 				}
 			}
@@ -148,11 +152,13 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 	    @Override
 	    protected void onPostExecute(String response) {
 	    	if (mWelcomeUser.getText().toString().isEmpty()) {
-		    	Log.w("MSM", "text:  " + response);
+		    	//Log.w("MSM", "text:  " + response);
 				mWelcomeUser.setText(mUserName);
 	    	}
 	    	if (pd != null) {
 		    	pd.dismiss();
+		    	//start the search activity
+		    	launchSearchResults();
 	    	}
 	    }
 		
@@ -207,59 +213,59 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 			long id) {
 		switch (parent.getId()) {
 			case R.id.jobProgramSpinner:{
-				Log.w("MSM", "Job program spinner");
+				//Log.w("MSM", "Job program spinner");
 				String option = (String) parent.getItemAtPosition(pos);
-				Log.w("MSM", "item:  " + option);
+				//Log.w("MSM", "item:  " + option);
 				mOptionJobProgram = Utils.getFromProgramHashMap(option);
-				Log.w("MSM", "value:  " + mOptionJobProgram);
+				//Log.w("MSM", "value:  " + mOptionJobProgram);
 				break;
 			}
 			case R.id.islandLocationSpinner:{
-				Log.w("MSM", "island location spinner");
+				//Log.w("MSM", "island location spinner");
 				String option = (String) parent.getItemAtPosition(pos);
-				Log.w("MSM", "item:  " + option);
+				//Log.w("MSM", "item:  " + option);
 				mOptionIslandLocation = Utils.getFromIslandOptionMap(option);
-				Log.w("MSM", "value:  " + mOptionIslandLocation);
+				//Log.w("MSM", "value:  " + mOptionIslandLocation);
 				break;
 			}
 			case R.id.campusLocationSpinner:{
-				Log.w("MSM", "campus location spinner");
+				//Log.w("MSM", "campus location spinner");
 				String option = (String) parent.getItemAtPosition(pos);
-				Log.w("MSM", "item:  " + option);
+				//Log.w("MSM", "item:  " + option);
 				mOptionCampusLocation = Utils.getFromCampusOptionMap(option);
-				Log.w("MSM", "value:  " + mOptionCampusLocation);
+				//Log.w("MSM", "value:  " + mOptionCampusLocation);
 				break;
 			}
 			case R.id.categorySpinner:{
-				Log.w("MSM", "category spinner");
+				//Log.w("MSM", "category spinner");
 				String option = (String) parent.getItemAtPosition(pos);
-				Log.w("MSM", "item:  " + option);
+				//Log.w("MSM", "item:  " + option);
 				mOptionCategory = Utils.getFromCategoryOptionMap(option);
-				Log.w("MSM", "value:  " + mOptionCategory);
+				//Log.w("MSM", "value:  " + mOptionCategory);
 				break;
 			}
 			case R.id.classificationSpinner:{
-				Log.w("MSM", "classification spinner");
+				//Log.w("MSM", "classification spinner");
 				String option = (String) parent.getItemAtPosition(pos);
-				Log.w("MSM", "item:  " + option);
+				//Log.w("MSM", "item:  " + option);
 				mOptionClassification = Utils.getFromClassificationOptionMap(option);
-				Log.w("MSM", "value:  " + mOptionClassification);
+				//Log.w("MSM", "value:  " + mOptionClassification);
 				break;
 			}
 			case R.id.postingsSpinner:{
-				Log.w("MSM", "postings spinner");
+				//Log.w("MSM", "postings spinner");
 				String option = (String) parent.getItemAtPosition(pos);
-				Log.w("MSM", "item:  " + option);
+				//Log.w("MSM", "item:  " + option);
 				mOptionPostings = Utils.getFromPostingsOptionMap(option);
-				Log.w("MSM", "value:  " + mOptionPostings);
+				//Log.w("MSM", "value:  " + mOptionPostings);
 				break;
 			}
 			case R.id.eligibilitySpinner:{
-				Log.w("MSM", "eligibility spinner");
+				//Log.w("MSM", "eligibility spinner");
 				String option = (String) parent.getItemAtPosition(pos);
-				Log.w("MSM", "item:  " + option);
+				//Log.w("MSM", "item:  " + option);
 				mOptionsEligibility = Utils.getFromEligibilityOptionMap(option);
-				Log.w("MSM", "value:  " + mOptionsEligibility);
+/*				Log.w("MSM", "value:  " + mOptionsEligibility);*/
 				break;
 			}
 		}
@@ -299,9 +305,16 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 		map.put("categories", mOptionCategory);
 		map.put("specialClassification", mOptionClassification);
 		map.put("postSince", mOptionPostings);
-		map.put("limitEligibile", mOptionsEligibility);
+		map.put("limitEligible", mOptionsEligibility);
 		map.put("jobNumber", mJobNumber);
 		map.put("locArea", "stdMainMenu");
 		return map;
+	}
+	
+	public void launchSearchResults() {
+		Intent launchStudentMenu = new Intent(this,SearchResults.class);
+		launchStudentMenu.putExtra(Login.COOKIE_VALUE, mCookieValue);
+		launchStudentMenu.putExtra(SEARCH_RESPONSE_STRING, mResponse);
+    	startActivity(launchStudentMenu);
 	}
 }

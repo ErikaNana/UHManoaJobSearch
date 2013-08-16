@@ -125,7 +125,7 @@
 		<item>Last month</item>
 	</string-array>
 	<string-array name = "eligibilityArray">
+	    <item>Jobs that I am eligible for</item>
 		<item>All Jobs</item>
-		<item>Jobs that I am eligible for</item>
 	</string-array>
 </resources>
