@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/list_selector"
+    android:padding="5dip"
+    android:orientation="horizontal" >
+    <!-- ListRow icon -->
+        <ImageView
+	        android:id = "@+id/locationIcon"
+	        android:layout_width = "65dip"
+	        android:layout_height = "65dip"
+	        android:layout_marginRight="5dip"
+	        android:src = "@drawable/uhm" 
+	        android:contentDescription="@string/app_name"/>
+	<!-- Job Title -->
+	<TextView
+		android:id="@+id/jobTitle"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:singleLine="true"
+		android:paddingRight="5dip"
+		android:layout_alignTop="@+id/locationIcon"
+		android:layout_toRightOf = "@+id/locationIcon"
+		android:layout_toStartOf="@+id/jobProgramType"
+		android:text="@string/jobTitle"
+		android:textColor="#040404"
+		android:typeface="sans"
+		android:textSize="16sp"
+		android:textStyle="bold"/>
+	<!-- Job Description -->
+	<TextView
+	    android:id="@+id/jobDescrip"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_below="@id/jobTitle"
+	    android:textColor="#343434"
+	    android:textSize="12sp"
+	    android:layout_alignBottom="@+id/locationIcon"
+	    android:layout_marginTop="1dip"
+	    android:layout_toRightOf="@+id/locationIcon"
+	    android:layout_toStartOf="@+id/jobProgramType"
+	    android:text="@string/jobDescrip"
+	    android:maxLines="3"
+	    android:ellipsize="end" />
+	<!-- Program Type and location -->
+	<TextView
+	    android:id = "@+id/jobProgramType"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentRight="true"
+	    android:layout_alignTop="@+id/jobTitle"
+	    android:gravity="right"
+	    android:text="@string/jobProgram"
+	    android:layout_marginRight="5dip"
+	    android:textSize="12sp"
+	    android:textColor="#343434"   
+	    android:textStyle="bold" />
+	<!-- Salary Info -->
+	<RelativeLayout 
+	    android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:layout_toRightOf="@+id/jobDescrip"
+		android:layout_below="@+id/jobProgramType"
+		android:layout_alignBottom="@+id/jobDescrip"
+		android:gravity="center">
+		<TextView 
+			android:id="@+id/jobSalary"
+		    android:text="@string/jobSalary"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:textStyle="bold"
+		    android:textSize="18sp"
+		    android:layout_centerInParent="true"/>
+		<TextView
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content" 
+		    android:layout_below="@+id/jobSalary"
+		    android:text="@string/jobHour"
+		    android:textStyle="bold"
+		    android:textSize="12sp"
+		    android:layout_centerInParent="true"/>
+	 </RelativeLayout>
+
+</RelativeLayout>
