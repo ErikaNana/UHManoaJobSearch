@@ -1,5 +1,7 @@
 package edu.uhmanoa.jobsearch;
 
+import java.util.ArrayList;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -9,32 +11,50 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class SearchResults extends Activity {
 	String mCookie;
 	String mResponse;
-	TextView mResponseText;
+	ListView mListOfJobsListView;
+	TextView mNumberOfJobs;
+	int mNumberOfJobsDisplaying;
+	String mNumberOfJobsFound;
+	ArrayList<Job> mListOfJobs;
+	JobAdapter mAdapter;
 	
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.search_result);
+		
+		mListOfJobsListView = (ListView) findViewById(R.id.listOfJobs);
+		mNumberOfJobs = (TextView) findViewById(R.id.numberOfResults);
+		mListOfJobs = new ArrayList<Job>();
+		
 		//get the response and the cookie
 		Intent thisIntent = this.getIntent();
 		mCookie = thisIntent.getStringExtra(Login.COOKIE_VALUE);
 		mResponse = thisIntent.getStringExtra(MainStudentMenu.SEARCH_RESPONSE_STRING);
 		
-		mResponseText = (TextView) findViewById(R.id.responseTextView);
-		mResponseText.setMovementMethod(new ScrollingMovementMethod());
-
 		//set the text for the window
 		Document doc = Jsoup.parse(mResponse);
 		Elements body = doc.getElementsByTag("tbody");
-/*		Element header = body.get(0);*/
+		Elements header = doc.getElementsByAttributeValue("class", "pagebanner");
+		Elements numbers = header.select("font");
+		
+		//set number of jobs and how many displaying
+		mNumberOfJobsFound = numbers.get(0).text();
+		mNumberOfJobsDisplaying = Integer.valueOf(numbers.get(2).text());
+		mNumberOfJobs.setText(mNumberOfJobsFound + " jobs found"); 
+		
+		//get all of the jobs in this page view
 		Element listOfJobs = body.get(3);
 		Elements groupOfJobs = listOfJobs.children(); //25 jobs
 		String jobText = "";
@@ -44,8 +64,23 @@ public class SearchResults extends Activity {
 					  newJob.mProgram+ "\n" + newJob.mPay + "\n" + 
 					  newJob.mCategory + "\n" + newJob.mLocation + "\n" +
 				      newJob.mRefNumber + "\n" + newJob.mSkillMatches + "\n" + "\n";
-			mResponseText.setText(jobText);
-		}		
+			mListOfJobs.add(newJob);
+		}
+		
+		mAdapter = new JobAdapter(this, R.id.listOfJobs, mListOfJobs);
+		mListOfJobsListView.setAdapter(mAdapter);
+		
+		//listen for click event
+		mListOfJobsListView.setOnItemClickListener(new OnItemClickListener() {
+ 
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position,
+					long id) {
+				Job job = (Job) mListOfJobsListView.getItemAtPosition(position);
+				String title = job.mTitle;
+				Toast.makeText(getApplicationContext(), title, Toast.LENGTH_SHORT).show();
+			}		
+		});
 	}
 	public Job createJob(Element job) {
 		Elements attributes = job.getElementsByTag("td"); //7 attributes
@@ -55,7 +90,7 @@ public class SearchResults extends Activity {
 		job.select("a[href]").remove(); //remove the links
 		String jobDescrip = attributes.get(0).text();
 		jobDescrip = jobDescrip.replace("[]","");
-		Log.w("SR", jobDescrip);
+/*		Log.w("SR", jobDescrip);*/
 
 		//get the rest of the attributes
 		String jobProgram = attributes.get(1).text();

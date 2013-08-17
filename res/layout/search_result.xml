@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="5dip"
     android:orientation="vertical" >
-    <WebView
-        android:id="@+id/webViewWindow"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:visibility="gone" />
-    <TextView
-        android:id="@+id/responseTextView"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:maxLines="1000"
-        android:scrollbars="vertical"/>
-
-</LinearLayout>
+    <TextView 
+        android:id="@+id/numberOfResults"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:typeface="sans"
+        android:textStyle="bold"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:text="@string/app_name"/>
+    <ListView 
+        android:id="@+id/listOfJobs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/numberOfResults">
+        
+    </ListView>
+</RelativeLayout>

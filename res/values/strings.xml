@@ -29,6 +29,7 @@
 	<string name = "jobProgram">UH &amp; FWS</string>
 	<string name = "jobSalary">$9.00</string>
 	<string name = "jobHour">per hour</string>
+	<string name = "location">Hell</string>
 	<string-array name="jobProgramArray">
 		<item>All Programs</item>
 		<item>Full Time (FT)</item>
