@@ -14,6 +14,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -61,6 +62,8 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 	public static final String COOKIE_TYPE = "JSESSIONID";
 	public static final String JOB_SEARCH_POST_URL = "https://sece.its.hawaii.edu/sece/stdJobSearchAction.do";
 	public static final String SEARCH_RESPONSE_STRING = "search response string";
+	public static final int CONNECTION_ERROR = 8;
+	public static final int COOKIE_ERROR = 9;
 	
 	public static final int JOB_SPINNER = 1;
 	public static final int ISLAND_SPINNER = 2;
@@ -143,8 +146,9 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 					mResponse = doc.toString();
 					return mResponse;
 					/*//Log.w("MSTD", "response:  " + doc.text());*/
-				} catch (Exception e) {
-					e.printStackTrace();
+				} catch (Exception e) { //cookie exception
+					Log.e("MSM", e.getMessage());
+					showErrorDialog(COOKIE_ERROR);
 				}
 			}
 			return null;
@@ -164,7 +168,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 			    	launchSearchResults();
 		    	}
 		    	else { //exception thrown
-		    		showErrorDialog();
+		    		showErrorDialog(CONNECTION_ERROR);
 		    	}
 	    	}
 	    }
@@ -317,6 +321,10 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
     	startActivity(launchStudentMenu);
 	}
 	
+	public void launchLogin() {
+		Intent login = new Intent(this, Login.class);
+		startActivity(login);
+	}
 	public void postParams() {
 		ParseHtml parseHtml = new ParseHtml();
 		parseHtml.execute(new String[] {JOB_SEARCH_POST_URL});
@@ -324,30 +332,48 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
         pd.setTitle("Connecting...");
         //make this a random fact later.  haha.
         pd.setMessage("Please wait.");
-        pd.setCancelable(false);
         pd.setIndeterminate(true);
         pd.show();
 	}
 	
-	public void showErrorDialog() {
+	public void showErrorDialog(int type) {
 		AlertDialog.Builder builder=  new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK)
 									      .setTitle(R.string.app_name);
-		
-		builder.setMessage("Connection error.  Try again?");
-		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				postParams();
-			}
-		});
-		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				return;
-			}
-		});
+		if (type == CONNECTION_ERROR) {
+			builder.setMessage("Connection error.  Try again?");
+			builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					postParams();
+				}
+			});
+			builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					return;
+				}
+			});
+		}
+		else {
+			builder.setMessage("Your session has expired.  Login again.");
+			builder.setPositiveButton("Login", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					launchLogin();
+				}
+			});
+			builder.setNegativeButton("Quit", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					finish();
+					
+				}
+			});
+		}
 		AlertDialog dialog = builder.create();
 		//so dialog doesn't get closed when touched outside of it
 		dialog.setCanceledOnTouchOutside(false);

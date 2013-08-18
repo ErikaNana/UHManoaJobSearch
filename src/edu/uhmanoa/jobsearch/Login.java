@@ -118,15 +118,7 @@ public class Login extends Activity implements OnClickListener{
 					showErrorDialog(NO_INPUT_ERROR);
 					return;
 				}*/
-				connectToWebsite connect = new connectToWebsite();
-				pd = new ProgressDialog(this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-                pd.setTitle("Connecting...");
-                //make this a random fact later.  haha.
-                pd.setMessage("Please wait.");
-                pd.setCancelable(false);
-                pd.setIndeterminate(true);
-                pd.show();
-				connect.execute(new String[] {POST_LOGIN_URL, mUserName, mPassword});
+				login();
 			}
 		}
 	}
@@ -176,11 +168,12 @@ public class Login extends Activity implements OnClickListener{
 						startActivity(intent);
 					}
 				});
-				builder.setNegativeButton("Quit", new DialogInterface.OnClickListener() {
+				builder.setNegativeButton("Try again", new DialogInterface.OnClickListener() {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						finish();
+						pd.dismiss();
+						login();
 					}
 				});
 				break;
@@ -200,5 +193,16 @@ public class Login extends Activity implements OnClickListener{
 		launchStudentMenu.putExtra(COOKIE_VALUE, mCookieValue);
 		launchStudentMenu.putExtra(RESPONSE_STRING, mLoginResponse);
     	startActivity(launchStudentMenu);
+	}
+	
+	public void login() {
+		pd = new ProgressDialog(this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+        pd.setTitle("Connecting...");
+        //make this a random fact later.  haha.
+        pd.setMessage("Please wait.");
+        pd.setIndeterminate(true);
+        pd.show();
+        connectToWebsite connect = new connectToWebsite();
+		connect.execute(new String[] {POST_LOGIN_URL, mUserName, mPassword});
 	}
 }

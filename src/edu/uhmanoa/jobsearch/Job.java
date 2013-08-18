@@ -9,6 +9,7 @@ public class Job {
 	String mLocation;
 	String mRefNumber;
 	String mSkillMatches;
+	String mFullDescripLink;
 	
 	public static final int UHM = 1;
 	public static final int UHH = 2;
@@ -22,7 +23,7 @@ public class Job {
 	public static final int OTHER = 10;
 	
 	public Job(String title, String description, String program, String pay, String category, String location, 
-			String refNumber, String skillMatches) {
+			String refNumber, String skillMatches, String fullDescrip) {
 		mTitle = title;
 		mDescription = description;
 		mProgram = program;
@@ -31,6 +32,7 @@ public class Job {
 		mLocation = location;
 		mRefNumber = refNumber;
 		mSkillMatches = skillMatches;
+		mFullDescripLink = fullDescrip;
 	}
 	
 	public int whichIcon() {

@@ -1,6 +1,7 @@
 package edu.uhmanoa.jobsearch;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -9,14 +10,19 @@ import org.jsoup.select.Elements;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class SearchResults extends Activity {
 	String mCookie;
@@ -27,6 +33,10 @@ public class SearchResults extends Activity {
 	String mNumberOfJobsFound;
 	ArrayList<Job> mListOfJobs;
 	JobAdapter mAdapter;
+	String mNextLink;
+	ProgressDialog pd;
+	Job mJobLookingAt;
+	public static final String DOMAIN_NAME = "https://sece.its.hawaii.edu";
 	
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
@@ -43,18 +53,69 @@ public class SearchResults extends Activity {
 		mCookie = thisIntent.getStringExtra(Login.COOKIE_VALUE);
 		mResponse = thisIntent.getStringExtra(MainStudentMenu.SEARCH_RESPONSE_STRING);
 		
-		//set the text for the window
+		//parse the header
 		Document doc = Jsoup.parse(mResponse);
-		Elements body = doc.getElementsByTag("tbody");
 		Elements header = doc.getElementsByAttributeValue("class", "pagebanner");
 		Elements numbers = header.select("font");
 		
+		//get page links
+		Elements pageLinks = doc.getElementsByAttributeValue("class", "pagelinks");
+		Elements links = pageLinks.select("a[href]");
+		
+		//get the link of the next page
+		String nextLink = links.get(0).attr("href");
+		mNextLink = DOMAIN_NAME + nextLink;
+
 		//set number of jobs and how many displaying
 		mNumberOfJobsFound = numbers.get(0).text();
 		mNumberOfJobsDisplaying = Integer.valueOf(numbers.get(2).text());
 		mNumberOfJobs.setText(mNumberOfJobsFound + " jobs found"); 
 		
+		//get the jobs in this initial page view
+		getJobs(mResponse);
+		
+		//set the adapter
+		mAdapter = new JobAdapter(this, R.id.listOfJobs, mListOfJobs);
+		mListOfJobsListView.setAdapter(mAdapter);
+		
+		//listen for click event
+		mListOfJobsListView.setOnItemClickListener(new OnItemClickListener() {
+ 
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position,
+					long id) {
+				mJobLookingAt = (Job) mListOfJobsListView.getItemAtPosition(position);
+				launchGetDescription(mJobLookingAt);
+			}		
+		});
+	}
+	public Job createJob(Element job) {
+		Elements attributes = job.getElementsByTag("td"); //7 attributes
+		//get the job title
+		String jobTitle = job.select("a[href]").get(0).text();
+		//get the full description link
+		String jobFullDescripLink = DOMAIN_NAME + job.select("a[href]").get(0).attr("href");
+
+		//get the job description preview
+		job.select("a[href]").remove(); //remove the links
+		String jobDescrip = attributes.get(0).text();
+		jobDescrip = jobDescrip.replace("[]","");
+
+		//get the rest of the attributes
+		String jobProgram = attributes.get(1).text();
+		String jobPay = attributes.get(2).text();
+		String jobCategory = attributes.get(3).text();
+		String jobLocation = attributes.get(4).text();
+		String jobRefNumber = attributes.get(5).text();
+		String jobSkillMatch = attributes.get(6).text();
+		return new Job(jobTitle, jobDescrip, jobProgram, jobPay, jobCategory, 
+				jobLocation, jobRefNumber, jobSkillMatch, jobFullDescripLink); 
+	}
+	
+	public void getJobs(String response) {
 		//get all of the jobs in this page view
+		Document doc = Jsoup.parse(mResponse);
+		Elements body = doc.getElementsByTag("tbody");
 		Element listOfJobs = body.get(3);
 		Elements groupOfJobs = listOfJobs.children(); //25 jobs
 		String jobText = "";
@@ -66,40 +127,123 @@ public class SearchResults extends Activity {
 				      newJob.mRefNumber + "\n" + newJob.mSkillMatches + "\n" + "\n";
 			mListOfJobs.add(newJob);
 		}
-		
-		mAdapter = new JobAdapter(this, R.id.listOfJobs, mListOfJobs);
-		mListOfJobsListView.setAdapter(mAdapter);
-		
-		//listen for click event
-		mListOfJobsListView.setOnItemClickListener(new OnItemClickListener() {
- 
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position,
-					long id) {
-				Job job = (Job) mListOfJobsListView.getItemAtPosition(position);
-				String title = job.mTitle;
-				Toast.makeText(getApplicationContext(), title, Toast.LENGTH_SHORT).show();
-			}		
-		});
+		if (mAdapter != null) {
+			mAdapter.notifyDataSetChanged();
+		}
 	}
-	public Job createJob(Element job) {
-		Elements attributes = job.getElementsByTag("td"); //7 attributes
-		//get the job title
-		String jobTitle = job.select("a[href]").get(0).text();
-		//get the job description preview
-		job.select("a[href]").remove(); //remove the links
-		String jobDescrip = attributes.get(0).text();
-		jobDescrip = jobDescrip.replace("[]","");
-/*		Log.w("SR", jobDescrip);*/
+	public void launchGetDescription(Job job) {
+		pd = new ProgressDialog(this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+        pd.setTitle("Connecting...");
+        //make this a random fact later.  haha.
+        pd.setMessage("Please wait.");
+        pd.setCancelable(false);
+        pd.setIndeterminate(true);
+        pd.show();
+		GetFullDescription getDescription = new GetFullDescription();
+		getDescription.execute(new String[] {job.mFullDescripLink});
+	}
+	private class GetFullDescription extends AsyncTask <String, Void, String>{
+		@Override
+		protected String doInBackground(String... html) {
+				Document doc = null;
+				try {
+					doc = Jsoup.connect(html[0])
+							   .timeout(5000)
+							   .cookie(Login.COOKIE_TYPE, mCookie)
+							   .get();
+					mResponse = doc.toString();
+					return mResponse;
+					/*//Log.w("MSTD", "response:  " + doc.text());*/
+				} catch (Exception e) { 
+					Log.e("SR", "EXCEPTION!!!!");
+					Log.e("MSM", e.getMessage());
+					showErrorDialog();
+				}
+			return null;
+		}
+	    @Override
+	    protected void onPostExecute(String response) {
+	    	pd.dismiss();
+	    	if (response != null) {
+	    		
+	    	}
+	    }
+	}
+	
+	public void showErrorDialog() {
+		AlertDialog.Builder builder=  new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK)
+									      .setTitle(R.string.app_name);
+		builder.setMessage("An error has occured.  Try again?");
+		builder.setPositiveButton("Yes", new OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				launchGetDescription(mJobLookingAt);
+			}
+		});
+		builder.setNegativeButton("No", new OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				return;
+			}
+		});
+		AlertDialog dialog = builder.create();
+		//so dialog doesn't get closed when touched outside of it
+		dialog.setCanceledOnTouchOutside(false);
 
-		//get the rest of the attributes
-		String jobProgram = attributes.get(1).text();
-		String jobPay = attributes.get(2).text();
-		String jobCategory = attributes.get(3).text();
-		String jobLocation = attributes.get(4).text();
-		String jobRefNumber = attributes.get(5).text();
-		String jobSkillMatch = attributes.get(6).text();
-		return new Job(jobTitle, jobDescrip, jobProgram, jobPay, jobCategory, 
-				jobLocation, jobRefNumber, jobSkillMatch); 
+		dialog.show();
+	}
+	/**Get the details for the full job listing*/
+	public ArrayList<Object> getDetails(String response) {
+		
+		ArrayList<Object> listingDetails = new ArrayList<Object>();
+		HashMap<String,Boolean> skills = new HashMap<String,Boolean>();
+		
+		//get the details
+		Document doc = Jsoup.parse(response);
+		Elements rows = doc.getElementsByTag("tr");
+		for (Element row: rows) {
+			if (row.children().size() == 3) {
+				String category = row.getElementsByAttributeValue("width", "20%").text();
+				Elements detail = row.getElementsByAttributeValue("width", "80%");
+				//transform <br> to new lines 
+				detail.select("br").append("\\n");
+				String detailString = detail.text().replaceAll("\\\\n", "\n");
+				
+				//add it to return arrayList
+				listingDetails.add(category);
+				listingDetails.add(detailString);
+				
+				//get the skill matches and if user has skill
+				if (category.equals("Skill Matches")) {
+			    	//only do this if there is a skill matches table
+			    	Elements table = row.select("tbody");
+			    	//get elements with static class
+			    	Elements skillMatches = table.select("td");
+			    	//get the skills and if user has them or not
+			    	String skillName = "";
+			    	Boolean hasSkill = false;
+			    	for (int i = 0; i < skillMatches.size(); i++) {
+			    		//odd number is skill
+			    		if ((i %2) == 0) {
+			    			skillName = skillMatches.get(i).text();
+			    		}
+			    		if ((i % 2) == 1) {
+			    			//check what kind of picture it is
+			    			String url = skillMatches.get(i).select("img").attr("src");
+			    			if (url.contains("on")) {
+			    				hasSkill = true;
+			    			}
+			    			skills.put(skillName, hasSkill);
+			    			//reset
+			    			hasSkill = false;
+			    		}
+			    	}					
+				}
+			}
+		}
+		listingDetails.add(skills);
+		return listingDetails;
 	}
 }
