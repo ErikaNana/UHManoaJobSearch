@@ -1,7 +1,6 @@
 package edu.uhmanoa.jobsearch;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -21,12 +20,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
 public class SearchResults extends Activity {
 	String mCookie;
-	String mResponse;
+	String mSearchResponse;
+	String mLoginResponse;
 	ListView mListOfJobsListView;
 	TextView mNumberOfJobs;
 	int mNumberOfJobsDisplaying;
@@ -36,7 +37,11 @@ public class SearchResults extends Activity {
 	String mNextLink;
 	ProgressDialog pd;
 	Job mJobLookingAt;
+	LinearLayout mFullDescripHolder;
+	
 	public static final String DOMAIN_NAME = "https://sece.its.hawaii.edu";
+	public static final int GENERAL_ERROR = 1;
+	public static final int NO_RESULT_FOUND_ERROR = 2;
 	
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
@@ -47,47 +52,69 @@ public class SearchResults extends Activity {
 		mListOfJobsListView = (ListView) findViewById(R.id.listOfJobs);
 		mNumberOfJobs = (TextView) findViewById(R.id.numberOfResults);
 		mListOfJobs = new ArrayList<Job>();
+		mFullDescripHolder = (LinearLayout) findViewById(R.id.fullDescriptionWindow);
 		
 		//get the response and the cookie
 		Intent thisIntent = this.getIntent();
 		mCookie = thisIntent.getStringExtra(Login.COOKIE_VALUE);
-		mResponse = thisIntent.getStringExtra(MainStudentMenu.SEARCH_RESPONSE_STRING);
+		mSearchResponse = thisIntent.getStringExtra(MainStudentMenu.SEARCH_RESPONSE_STRING);
+		//need this in case of error
+		mLoginResponse = thisIntent.getStringExtra(Login.LOGIN_RESPONSE_STRING);
 		
 		//parse the header
-		Document doc = Jsoup.parse(mResponse);
+		Document doc = Jsoup.parse(mSearchResponse);
 		Elements header = doc.getElementsByAttributeValue("class", "pagebanner");
 		Elements numbers = header.select("font");
-		
-		//get page links
-		Elements pageLinks = doc.getElementsByAttributeValue("class", "pagelinks");
-		Elements links = pageLinks.select("a[href]");
-		
-		//get the link of the next page
-		String nextLink = links.get(0).attr("href");
-		mNextLink = DOMAIN_NAME + nextLink;
+			
+		if (numbers.isEmpty()) {
+			//show error dialog
+			showErrorDialog(NO_RESULT_FOUND_ERROR);
+		}
+	
+		else {
+			//set number of jobs and how many displaying
+			mNumberOfJobsFound = numbers.get(0).text();
+			mNumberOfJobsDisplaying = Integer.valueOf(numbers.get(2).text());
+			
+			//get page links
+			Elements pageLinks = doc.getElementsByAttributeValue("class", "pagelinks");
+			Elements links = pageLinks.select("a[href]");
+			
+			//check if there was any search keywords
+			Elements searchForm = doc.getElementsByAttributeValue("name", "keywords");
+			//get the search term
+			String keyword = searchForm.attr("value");
+			//set the top right text
+			if (!keyword.isEmpty()) {
+				mNumberOfJobs.setText(mNumberOfJobsFound + " jobs found for \"" + keyword
+									 + "\"");
+			}
+			else {
+				mNumberOfJobs.setText(mNumberOfJobsFound + " jobs found"); 
+			}
+			
+			//get the link of the next page
+			String nextLink = links.get(0).attr("href");
+			mNextLink = DOMAIN_NAME + nextLink;
 
-		//set number of jobs and how many displaying
-		mNumberOfJobsFound = numbers.get(0).text();
-		mNumberOfJobsDisplaying = Integer.valueOf(numbers.get(2).text());
-		mNumberOfJobs.setText(mNumberOfJobsFound + " jobs found"); 
-		
-		//get the jobs in this initial page view
-		getJobs(mResponse);
-		
-		//set the adapter
-		mAdapter = new JobAdapter(this, R.id.listOfJobs, mListOfJobs);
-		mListOfJobsListView.setAdapter(mAdapter);
-		
-		//listen for click event
-		mListOfJobsListView.setOnItemClickListener(new OnItemClickListener() {
- 
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position,
-					long id) {
-				mJobLookingAt = (Job) mListOfJobsListView.getItemAtPosition(position);
-				launchGetDescription(mJobLookingAt);
-			}		
-		});
+			//get the jobs in this initial page view
+			getJobs(mSearchResponse);
+			
+			//set the adapter
+			mAdapter = new JobAdapter(this, R.id.listOfJobs, mListOfJobs);
+			mListOfJobsListView.setAdapter(mAdapter);
+			
+			//listen for click event
+			mListOfJobsListView.setOnItemClickListener(new OnItemClickListener() {
+	 
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view, int position,
+						long id) {
+					mJobLookingAt = (Job) mListOfJobsListView.getItemAtPosition(position);
+					launchGetDescription(mJobLookingAt);
+				}		
+			});			
+		}
 	}
 	public Job createJob(Element job) {
 		Elements attributes = job.getElementsByTag("td"); //7 attributes
@@ -114,7 +141,7 @@ public class SearchResults extends Activity {
 	
 	public void getJobs(String response) {
 		//get all of the jobs in this page view
-		Document doc = Jsoup.parse(mResponse);
+		Document doc = Jsoup.parse(mSearchResponse);
 		Elements body = doc.getElementsByTag("tbody");
 		Element listOfJobs = body.get(3);
 		Elements groupOfJobs = listOfJobs.children(); //25 jobs
@@ -151,13 +178,13 @@ public class SearchResults extends Activity {
 							   .timeout(5000)
 							   .cookie(Login.COOKIE_TYPE, mCookie)
 							   .get();
-					mResponse = doc.toString();
-					return mResponse;
+					mSearchResponse = doc.toString();
+					return mSearchResponse;
 					/*//Log.w("MSTD", "response:  " + doc.text());*/
 				} catch (Exception e) { 
 					Log.e("SR", "EXCEPTION!!!!");
 					Log.e("MSM", e.getMessage());
-					showErrorDialog();
+					showErrorDialog(GENERAL_ERROR);
 				}
 			return null;
 		}
@@ -165,29 +192,56 @@ public class SearchResults extends Activity {
 	    protected void onPostExecute(String response) {
 	    	pd.dismiss();
 	    	if (response != null) {
-	    		
+	    		getDetails(response);
 	    	}
 	    }
 	}
 	
-	public void showErrorDialog() {
+	public void showErrorDialog(int type) {
 		AlertDialog.Builder builder=  new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK)
 									      .setTitle(R.string.app_name);
-		builder.setMessage("An error has occured.  Try again?");
-		builder.setPositiveButton("Yes", new OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				launchGetDescription(mJobLookingAt);
+		switch(type) {
+			case GENERAL_ERROR:{
+				builder.setMessage("An error has occured.  Try again?");
+				builder.setPositiveButton("Yes", new OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						launchGetDescription(mJobLookingAt);
+					}
+				});
+				builder.setNegativeButton("No", new OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						return;
+					}
+				});
+				break;
 			}
-		});
-		builder.setNegativeButton("No", new OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				return;
+			case NO_RESULT_FOUND_ERROR:{
+				builder.setMessage("No job matches that criteria");
+				builder.setPositiveButton("Go back to search", new OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						//go back to search
+						Intent intent = new Intent(getBaseContext(), MainStudentMenu.class);
+						intent.putExtra(Login.COOKIE_VALUE, mCookie);
+						intent.putExtra(Login.LOGIN_RESPONSE_STRING, mLoginResponse);
+					    startActivity(intent);
+					}
+				});
+				builder.setNegativeButton("Quit", new OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						finish();
+					}
+				});
 			}
-		});
+		}
+
 		AlertDialog dialog = builder.create();
 		//so dialog doesn't get closed when touched outside of it
 		dialog.setCanceledOnTouchOutside(false);
@@ -195,11 +249,9 @@ public class SearchResults extends Activity {
 		dialog.show();
 	}
 	/**Get the details for the full job listing*/
-	public ArrayList<Object> getDetails(String response) {
-		
-		ArrayList<Object> listingDetails = new ArrayList<Object>();
-		HashMap<String,Boolean> skills = new HashMap<String,Boolean>();
-		
+	public ArrayList<String> getDetails(String response) {
+		ArrayList<String> listingDetails = new ArrayList<String>();
+
 		//get the details
 		Document doc = Jsoup.parse(response);
 		Elements rows = doc.getElementsByTag("tr");
@@ -211,18 +263,30 @@ public class SearchResults extends Activity {
 				detail.select("br").append("\\n");
 				String detailString = detail.text().replaceAll("\\\\n", "\n");
 				
+				//fix inconsistent pay string
+				if (category.equals("Pay Rate")) {
+					if (!detailString.contains("$")) {
+						detailString = "$" +detailString;
+					}
+					int decimal = detailString.indexOf(".");
+					//indexing starts at 0
+					if (detailString.length() < decimal + 3) {
+						detailString = detailString + "0";
+					}
+				}
 				//add it to return arrayList
 				listingDetails.add(category);
 				listingDetails.add(detailString);
 				
 				//get the skill matches and if user has skill
 				if (category.equals("Skill Matches")) {
+					detailString = "";
 			    	//only do this if there is a skill matches table
 			    	Elements table = row.select("tbody");
 			    	//get elements with static class
 			    	Elements skillMatches = table.select("td");
 			    	//get the skills and if user has them or not
-			    	String skillName = "";
+			    	String skillName = null;
 			    	Boolean hasSkill = false;
 			    	for (int i = 0; i < skillMatches.size(); i++) {
 			    		//odd number is skill
@@ -235,15 +299,20 @@ public class SearchResults extends Activity {
 			    			if (url.contains("on")) {
 			    				hasSkill = true;
 			    			}
-			    			skills.put(skillName, hasSkill);
+			    			detailString = detailString + skillName + ": " + "[" + hasSkill + "]" + " ";
 			    			//reset
 			    			hasSkill = false;
 			    		}
 			    	}					
 				}
+				Log.w("SR", category + ": " + detailString);
 			}
 		}
-		listingDetails.add(skills);
 		return listingDetails;
 	}
+	public void addRow(ArrayList<String> details) {
+		FullDescriptionRowView rowView = new FullDescriptionRowView(this,details.get(0), details.get(1));
+		mFullDescripHolder.addView(rowView);
+	}
+	
 }

@@ -27,7 +27,8 @@ import android.widget.TextView;
 
 public class MainStudentMenu extends Activity implements OnClickListener, OnItemSelectedListener {
 	String mWelcomeText;
-	String mResponse;
+	String mSearchResponse;
+	String mLoginResponse;
 	String mCookieValue;
 	String mUserName;
 	TextView mWelcomeUser;
@@ -62,6 +63,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 	public static final String COOKIE_TYPE = "JSESSIONID";
 	public static final String JOB_SEARCH_POST_URL = "https://sece.its.hawaii.edu/sece/stdJobSearchAction.do";
 	public static final String SEARCH_RESPONSE_STRING = "search response string";
+	
 	public static final int CONNECTION_ERROR = 8;
 	public static final int COOKIE_ERROR = 9;
 	
@@ -77,11 +79,11 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_student_menu);
-		
+	
 		Intent thisIntent = this.getIntent();
 		//get the cookie for this session
 		mCookieValue = thisIntent.getStringExtra(Login.COOKIE_VALUE);
-		mResponse = thisIntent.getStringExtra(Login.RESPONSE_STRING);
+		mLoginResponse = thisIntent.getStringExtra(Login.LOGIN_RESPONSE_STRING);
 		
 		mUserName = "";
 		//Log.w("search", "cookie value:  " + mCookieValue);
@@ -96,7 +98,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 		
 		//get the name of the person
 		ParseHtml parseHtml = new ParseHtml();
-		parseHtml.execute(new String[] {mResponse});
+		parseHtml.execute(new String[] {mLoginResponse});
 		
 		//Set up the spinners
 		mJobProgramSpinner = (Spinner) findViewById(R.id.jobProgramSpinner);
@@ -143,8 +145,8 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 								   .cookie(COOKIE_TYPE, mCookieValue)
 								   .data(getSearchMap())
 								   .post();
-					mResponse = doc.toString();
-					return mResponse;
+					mSearchResponse = doc.toString();
+					return mSearchResponse;
 					/*//Log.w("MSTD", "response:  " + doc.text());*/
 				} catch (Exception e) { //cookie exception
 					Log.e("MSM", e.getMessage());
@@ -165,7 +167,11 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 		    	}
 		    	if (response != null) {
 			    	//start the search activity
-			    	launchSearchResults();
+		    		Intent launchStudentMenu = new Intent(getApplicationContext(),SearchResults.class);
+		    		launchStudentMenu.putExtra(Login.COOKIE_VALUE, mCookieValue);
+		    		launchStudentMenu.putExtra(SEARCH_RESPONSE_STRING, mSearchResponse);
+		    		launchStudentMenu.putExtra(Login.LOGIN_RESPONSE_STRING, mLoginResponse);
+		        	startActivity(launchStudentMenu);
 		    	}
 		    	else { //exception thrown
 		    		showErrorDialog(CONNECTION_ERROR);
@@ -312,13 +318,6 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 		map.put("jobNumber", mJobNumber);
 		map.put("locArea", "stdMainMenu");
 		return map;
-	}
-	
-	public void launchSearchResults() {
-		Intent launchStudentMenu = new Intent(this,SearchResults.class);
-		launchStudentMenu.putExtra(Login.COOKIE_VALUE, mCookieValue);
-		launchStudentMenu.putExtra(SEARCH_RESPONSE_STRING, mResponse);
-    	startActivity(launchStudentMenu);
 	}
 	
 	public void launchLogin() {

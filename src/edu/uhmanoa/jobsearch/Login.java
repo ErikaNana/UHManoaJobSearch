@@ -37,7 +37,7 @@ public class Login extends Activity implements OnClickListener{
 	
 	/**Values for data passed into the intent*/
 	public static final String COOKIE_VALUE = "cookie value";
-	public static final String RESPONSE_STRING = "response string";
+	public static final String LOGIN_RESPONSE_STRING = "response string";
 	
 	/**Error codes for checking login information and connect*/
 	public static final int NO_INPUT_ERROR = 1;
@@ -191,7 +191,7 @@ public class Login extends Activity implements OnClickListener{
 	public void launchMainStudentMenu() {
 		Intent launchStudentMenu = new Intent(this,MainStudentMenu.class);
 		launchStudentMenu.putExtra(COOKIE_VALUE, mCookieValue);
-		launchStudentMenu.putExtra(RESPONSE_STRING, mLoginResponse);
+		launchStudentMenu.putExtra(LOGIN_RESPONSE_STRING, mLoginResponse);
     	startActivity(launchStudentMenu);
 	}
 	

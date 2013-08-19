@@ -9,6 +9,7 @@
     <string name="userNameHint">Username</string>
     <string name="passwordHint">Password</string>
 	<string name="loginButtonText">Login</string>
+	<!-- For MainStudentMenu -->
 	<string name="welcomeTextMain">Welcome, </string>
 	<string name = "keywordsText">Keyword(s):  </string>
 	<string name = "keywordsHint">Search</string>
@@ -23,6 +24,7 @@
 	<string name = "jobNumberEnding">-AXX</string>
 	<string name = "jobNumberHint">Number</string>
 	<string name = "searchButtonText">Search</string>
+	<!-- For single job view -->
 	<string name = "jobTitle">AUDITORIUM ATTENDANT</string>
 	<string name = "jobDescrip">PROVIDE ASSISTANCE TO INDIVIDUALS/GROUPS WHO WANT TO USE ORVIS AUDITORIUM AND OTHER MUSIC DEPARTMENT FACILITIES; PREPARE FACILITIES FOR USE (LIGHTING, CURTAINS) AND SECURE AFTER USE (INCLUDING RESTROO&#8230;</string>
 	<string name = "cutoffText">&#8230;</string>
@@ -30,6 +32,7 @@
 	<string name = "jobSalary">$9.00</string>
 	<string name = "jobHour">per hour</string>
 	<string name = "location">Hell</string>
+	<string name = "dummy">Campus Location</string>
 	<string-array name="jobProgramArray">
 		<item>All Programs</item>
 		<item>Full Time (FT)</item>
