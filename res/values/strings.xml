@@ -33,6 +33,9 @@
 	<string name = "jobHour">per hour</string>
 	<string name = "location">Hell</string>
 	<string name = "dummy">Campus Location</string>
+	<!-- For the full dialog -->
+	<string name = "jobButtonText">Add to Job Cart</string>
+	<string name = "returnSearchText">Return to Search Results</string>
 	<string-array name="jobProgramArray">
 		<item>All Programs</item>
 		<item>Full Time (FT)</item>

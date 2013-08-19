@@ -1,6 +1,7 @@
 package edu.uhmanoa.jobsearch;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -10,6 +11,7 @@ import org.jsoup.select.Elements;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -67,6 +69,12 @@ public class SearchResults extends Activity {
 		Elements numbers = header.select("font");
 			
 		if (numbers.isEmpty()) {
+			//check if in detailed listing
+			if(mSearchResponse.contains("Detailed")) {
+				Log.w("SR", "DETAILED LISTING!!!!");
+				//show full description
+				showFullDescription(mSearchResponse);
+			}
 			//show error dialog
 			showErrorDialog(NO_RESULT_FOUND_ERROR);
 		}
@@ -192,7 +200,7 @@ public class SearchResults extends Activity {
 	    protected void onPostExecute(String response) {
 	    	pd.dismiss();
 	    	if (response != null) {
-	    		getDetails(response);
+	    		showFullDescription(response);
 	    	}
 	    }
 	}
@@ -249,9 +257,9 @@ public class SearchResults extends Activity {
 		dialog.show();
 	}
 	/**Get the details for the full job listing*/
-	public ArrayList<String> getDetails(String response) {
-		ArrayList<String> listingDetails = new ArrayList<String>();
-
+	public LinkedHashMap<String,String> getDetails(String response) {
+		//Linked HashMap because still want to preserve order
+		LinkedHashMap<String,String> listingDetails = new LinkedHashMap<String,String>();
 		//get the details
 		Document doc = Jsoup.parse(response);
 		Elements rows = doc.getElementsByTag("tr");
@@ -274,10 +282,6 @@ public class SearchResults extends Activity {
 						detailString = detailString + "0";
 					}
 				}
-				//add it to return arrayList
-				listingDetails.add(category);
-				listingDetails.add(detailString);
-				
 				//get the skill matches and if user has skill
 				if (category.equals("Skill Matches")) {
 					detailString = "";
@@ -305,14 +309,16 @@ public class SearchResults extends Activity {
 			    		}
 			    	}					
 				}
+				//add it to HashMap
+				listingDetails.put(category, detailString);
 				Log.w("SR", category + ": " + detailString);
 			}
 		}
 		return listingDetails;
 	}
-	public void addRow(ArrayList<String> details) {
-		FullDescriptionRowView rowView = new FullDescriptionRowView(this,details.get(0), details.get(1));
-		mFullDescripHolder.addView(rowView);
+	public void showFullDescription(String response) {
+		Dialog fullDescription = new FullDescriptionDialog(this,
+				getDetails(response));
+		fullDescription.show();
 	}
-	
 }
