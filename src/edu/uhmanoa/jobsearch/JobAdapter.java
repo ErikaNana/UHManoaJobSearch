@@ -67,7 +67,14 @@ public class JobAdapter extends ArrayAdapter<Job>{
 			//set the description
 			holder.jobDescription.setText(job.mDescription);
 			//set the programType
-			holder.jobProgramType.setText(job.mProgram);
+			String program;
+			if (job.mProgram.equals("FULL TIME")) {
+				program = "FT";
+			}
+			else {
+				program = job.mProgram;
+			}
+			holder.jobProgramType.setText(program + " | " + job.mRefNumber);
 			if (job.jobOnCampus()) {
 				holder.jobHour.setVisibility(View.GONE);
 				holder.jobLocation.setVisibility(View.GONE);

@@ -183,8 +183,6 @@ public class Login extends Activity implements OnClickListener{
 		AlertDialog dialog = builder.create();
 		//so dialog doesn't get closed when touched outside of it
 		dialog.setCanceledOnTouchOutside(false);
-		//so dialog doesn't get dismissed by back button
-		dialog.setCancelable(false);
 		dialog.show();
 	}
 	

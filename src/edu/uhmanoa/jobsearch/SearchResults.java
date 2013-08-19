@@ -291,7 +291,6 @@ public class SearchResults extends Activity {
 			    	Elements skillMatches = table.select("td");
 			    	//get the skills and if user has them or not
 			    	String skillName = null;
-			    	Boolean hasSkill = false;
 			    	for (int i = 0; i < skillMatches.size(); i++) {
 			    		//odd number is skill
 			    		if ((i %2) == 0) {
@@ -301,11 +300,11 @@ public class SearchResults extends Activity {
 			    			//check what kind of picture it is
 			    			String url = skillMatches.get(i).select("img").attr("src");
 			    			if (url.contains("on")) {
-			    				hasSkill = true;
+			    				detailString = detailString + skillName + " [ X ] " + "\n";
 			    			}
-			    			detailString = detailString + skillName + ": " + "[" + hasSkill + "]" + " ";
-			    			//reset
-			    			hasSkill = false;
+			    			else {
+				    			detailString = detailString + skillName + " [    ]" + "\n";			    				
+			    			}
 			    		}
 			    	}					
 				}
