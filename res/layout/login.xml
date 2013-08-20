@@ -64,4 +64,9 @@
         android:layout_height="wrap_content"
         android:text="@string/loginButtonText"
 	    />
+	<TextView 
+	    android:id="@+id/errorDisplay"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:visibility="gone"/>
 </LinearLayout>

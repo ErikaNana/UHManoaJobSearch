@@ -166,6 +166,12 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 			    	pd.dismiss();
 		    	}
 		    	if (response != null) {
+		    		//check if cookie error
+		    		if (response.contains("inactivity")) {
+		    			ReLogin reLoginDialog = new ReLogin(getBaseContext(), ReLogin.MAIN_STUDENT_MENU_CLASS,
+		    									null);
+		    			reLoginDialog.show();
+		    		}
 			    	//start the search activity
 		    		Intent launchStudentMenu = new Intent(getApplicationContext(),SearchResults.class);
 		    		launchStudentMenu.putExtra(Login.COOKIE_VALUE, mCookieValue);
@@ -361,7 +367,8 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					launchLogin();
+					ReLogin reLoginDialog = new ReLogin(getBaseContext(), ReLogin.MAIN_STUDENT_MENU_CLASS, null);
+					reLoginDialog.show();
 				}
 			});
 			builder.setNegativeButton("Quit", new DialogInterface.OnClickListener() {

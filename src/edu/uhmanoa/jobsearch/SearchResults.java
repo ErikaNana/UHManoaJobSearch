@@ -40,10 +40,12 @@ public class SearchResults extends Activity {
 	ProgressDialog pd;
 	Job mJobLookingAt;
 	LinearLayout mFullDescripHolder;
+	Document doc;
 	
 	public static final String DOMAIN_NAME = "https://sece.its.hawaii.edu";
 	public static final int GENERAL_ERROR = 1;
 	public static final int NO_RESULT_FOUND_ERROR = 2;
+	public static final int EXPIRED_COOKIE_ERROR = 3;
 	
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
@@ -64,7 +66,7 @@ public class SearchResults extends Activity {
 		mLoginResponse = thisIntent.getStringExtra(Login.LOGIN_RESPONSE_STRING);
 		
 		//parse the header
-		Document doc = Jsoup.parse(mSearchResponse);
+		doc = Jsoup.parse(mSearchResponse);
 		Elements header = doc.getElementsByAttributeValue("class", "pagebanner");
 		Elements numbers = header.select("font");
 			
@@ -75,18 +77,23 @@ public class SearchResults extends Activity {
 				//show full description
 				showFullDescription(mSearchResponse);
 			}
+			if (mSearchResponse.contains("inactivity")) {
+				Log.w("SR", "inactivity" + mSearchResponse);
+				showErrorDialog(EXPIRED_COOKIE_ERROR);
+			}
 			//show error dialog
-			showErrorDialog(NO_RESULT_FOUND_ERROR);
+			if (mSearchResponse.contains("Nothing")) {
+				showErrorDialog(NO_RESULT_FOUND_ERROR);
+			}
+			else {
+				showErrorDialog(GENERAL_ERROR);
+			}
 		}
 	
 		else {
 			//set number of jobs and how many displaying
 			mNumberOfJobsFound = numbers.get(0).text();
 			mNumberOfJobsDisplaying = Integer.valueOf(numbers.get(2).text());
-			
-			//get page links
-			Elements pageLinks = doc.getElementsByAttributeValue("class", "pagelinks");
-			Elements links = pageLinks.select("a[href]");
 			
 			//check if there was any search keywords
 			Elements searchForm = doc.getElementsByAttributeValue("name", "keywords");
@@ -101,17 +108,19 @@ public class SearchResults extends Activity {
 				mNumberOfJobs.setText(mNumberOfJobsFound + " jobs found"); 
 			}
 			
-			//get the link of the next page
-			String nextLink = links.get(0).attr("href");
-			mNextLink = DOMAIN_NAME + nextLink;
-
 			//get the jobs in this initial page view
 			getJobs(mSearchResponse);
 			
+			//get the rest of the jobs...do this more elegantly later
+			if (checkNextLink(mSearchResponse)) {
+				//remember this runs in the background
+				ClickLink getDescription = new ClickLink();
+				getDescription.execute(new String[] {mNextLink, "WOOFWOOF"});
+			}
 			//set the adapter
 			mAdapter = new JobAdapter(this, R.id.listOfJobs, mListOfJobs);
 			mListOfJobsListView.setAdapter(mAdapter);
-			
+			Log.w("SR", "list number:  " + mListOfJobsListView.getCount());
 			//listen for click event
 			mListOfJobsListView.setOnItemClickListener(new OnItemClickListener() {
 	 
@@ -153,13 +162,9 @@ public class SearchResults extends Activity {
 		Elements body = doc.getElementsByTag("tbody");
 		Element listOfJobs = body.get(3);
 		Elements groupOfJobs = listOfJobs.children(); //25 jobs
-		String jobText = "";
+		Log.w("SR", "mAdapter:  " + mAdapter);
 		for (Element job: groupOfJobs) {
 			Job newJob = createJob(job);
-			jobText = jobText + newJob.mTitle + "\n" + newJob.mDescription + "\n" + 
-					  newJob.mProgram+ "\n" + newJob.mPay + "\n" + 
-					  newJob.mCategory + "\n" + newJob.mLocation + "\n" +
-				      newJob.mRefNumber + "\n" + newJob.mSkillMatches + "\n" + "\n";
 			mListOfJobs.add(newJob);
 		}
 		if (mAdapter != null) {
@@ -167,17 +172,11 @@ public class SearchResults extends Activity {
 		}
 	}
 	public void launchGetDescription(Job job) {
-		pd = new ProgressDialog(this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-        pd.setTitle("Connecting...");
-        //make this a random fact later.  haha.
-        pd.setMessage("Please wait.");
-        pd.setCancelable(false);
-        pd.setIndeterminate(true);
-        pd.show();
-		GetFullDescription getDescription = new GetFullDescription();
+		showConnectingDialog();
+		ClickLink getDescription = new ClickLink();
 		getDescription.execute(new String[] {job.mFullDescripLink});
 	}
-	private class GetFullDescription extends AsyncTask <String, Void, String>{
+	private class ClickLink extends AsyncTask <String, Void, String>{
 		@Override
 		protected String doInBackground(String... html) {
 				Document doc = null;
@@ -187,6 +186,9 @@ public class SearchResults extends Activity {
 							   .cookie(Login.COOKIE_TYPE, mCookie)
 							   .get();
 					mSearchResponse = doc.toString();
+					if (html.length == 2) {
+						mSearchResponse = mSearchResponse + "WOOFWOOF";
+					}
 					return mSearchResponse;
 					/*//Log.w("MSTD", "response:  " + doc.text());*/
 				} catch (Exception e) { 
@@ -198,9 +200,20 @@ public class SearchResults extends Activity {
 		}
 	    @Override
 	    protected void onPostExecute(String response) {
-	    	pd.dismiss();
 	    	if (response != null) {
-	    		showFullDescription(response);
+	    		//adding jobs to the list
+	    		if (mSearchResponse.contains("WOOFWOOF")) {
+	    			getJobs(mSearchResponse);
+	    			if (checkNextLink(response)) {
+	    				ClickLink getDescription = new ClickLink();
+	    				getDescription.execute(new String[] {mNextLink, "WOOFWOOF"});
+	    			}
+	    		}
+	    		else {
+	    			//getting the full description of a job
+	    	    	pd.dismiss();
+		    		showFullDescription(response);
+	    		}
 	    	}
 	    }
 	}
@@ -248,6 +261,17 @@ public class SearchResults extends Activity {
 					}
 				});
 			}
+			case EXPIRED_COOKIE_ERROR:{
+				builder.setMessage("Session has timed out");
+				builder.setPositiveButton("Login again", new OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						ReLogin reLoginDialog = new ReLogin(getBaseContext(), ReLogin.SEARCH_RESULT_CLASS, mSearchResponse);
+						reLoginDialog.show();
+					}
+				});
+			}
 		}
 
 		AlertDialog dialog = builder.create();
@@ -262,7 +286,8 @@ public class SearchResults extends Activity {
 		LinkedHashMap<String,String> listingDetails = new LinkedHashMap<String,String>();
 		//get the details
 		Document doc = Jsoup.parse(response);
-		Elements rows = doc.getElementsByTag("tr");
+		Elements rows = doc.getElementsByTag("tr");	
+		
 		for (Element row: rows) {
 			if (row.children().size() == 3) {
 				String category = row.getElementsByAttributeValue("width", "20%").text();
@@ -316,8 +341,51 @@ public class SearchResults extends Activity {
 		return listingDetails;
 	}
 	public void showFullDescription(String response) {
-		Dialog fullDescription = new FullDescriptionDialog(this,
-				getDetails(response));
-		fullDescription.show();
+		Log.w("SR", "inactivity (showFull)" + response);
+		if (response.contains("inactivity")) {
+			showErrorDialog(EXPIRED_COOKIE_ERROR);
+		}
+		else {
+			Dialog fullDescription = new FullDescriptionDialog(this,
+					getDetails(response));
+			fullDescription.show();
+		}
+
+	} 
+	public boolean checkNextLink(String response) {
+		Document doc = Jsoup.parse(response);
+		String currentPage = doc.getElementsByTag("strong").get(1).text();
+		System.out.println(currentPage);
+		//get page links
+		Elements pageLinks = doc.getElementsByAttributeValue("class", "pagelinks");
+		Elements links = pageLinks.select("a[href]");
+		int next = Integer.parseInt(currentPage) + 1;
+		boolean matchValue = false;
+		for (Element link: links) {
+			String linkNumber = link.text();
+			try {
+				if (Integer.parseInt(linkNumber) == next) {
+					matchValue = true;
+					//get the link
+					mNextLink = DOMAIN_NAME + link.getElementsByAttribute("href")
+											  .get(0).attr("href");
+					break;
+				}
+			}
+			catch(Exception exception){
+				continue;
+			}
+			
+		}
+		return matchValue;
+	}
+	public void showConnectingDialog() {
+		pd = new ProgressDialog(this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+        pd.setTitle("Connecting...");
+        //make this a random fact later.  haha.
+        pd.setMessage("Please wait.");
+        pd.setCancelable(false);
+        pd.setIndeterminate(true);
+        pd.show();
 	}
 }
