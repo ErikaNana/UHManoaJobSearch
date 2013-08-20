@@ -20,20 +20,21 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class SearchResults extends Activity {
+public class SearchResults extends Activity{
 	String mCookie;
 	String mSearchResponse;
 	String mLoginResponse;
 	ListView mListOfJobsListView;
 	TextView mNumberOfJobs;
-	int mNumberOfJobsDisplaying;
-	String mNumberOfJobsFound;
+	int mNumberOfJobsFound;
 	ArrayList<Job> mListOfJobs;
 	JobAdapter mAdapter;
 	String mNextLink;
@@ -42,10 +43,23 @@ public class SearchResults extends Activity {
 	LinearLayout mFullDescripHolder;
 	Document doc;
 	
+	//for the scroll view
+	int mCurrentVisibleItemCount;
+	int mCurrentScrollState;
+	int mTotalItemCount;
+	int mCurrentFirstVisibleItem;
+	int mNumberOfItemsFit;
+	//this is the response of the next page of jobs
+	String mNextPageResponse;
+	
 	public static final String DOMAIN_NAME = "https://sece.its.hawaii.edu";
 	public static final int GENERAL_ERROR = 1;
 	public static final int NO_RESULT_FOUND_ERROR = 2;
 	public static final int EXPIRED_COOKIE_ERROR = 3;
+	
+	//determine what kind of title text for loading dialog
+	public static final int GETTING_MORE_JOBS = 4;
+	public static final int GETTING_FULL_DESCRIPTION = 5;
 	
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
@@ -92,9 +106,8 @@ public class SearchResults extends Activity {
 	
 		else {
 			//set number of jobs and how many displaying
-			mNumberOfJobsFound = numbers.get(0).text();
-			mNumberOfJobsDisplaying = Integer.valueOf(numbers.get(2).text());
-			
+			mNumberOfJobsFound = Integer.parseInt(numbers.get(0).text());
+		
 			//check if there was any search keywords
 			Elements searchForm = doc.getElementsByAttributeValue("name", "keywords");
 			//get the search term
@@ -110,16 +123,42 @@ public class SearchResults extends Activity {
 			
 			//get the jobs in this initial page view
 			getJobs(mSearchResponse);
-			
-			//get the rest of the jobs...do this more elegantly later
-			if (checkNextLink(mSearchResponse)) {
-				//remember this runs in the background
-				ClickLink getDescription = new ClickLink();
-				getDescription.execute(new String[] {mNextLink, "WOOFWOOF"});
-			}
+			//initialize mNextPageResponse
+			mNextPageResponse = mSearchResponse;
 			//set the adapter
 			mAdapter = new JobAdapter(this, R.id.listOfJobs, mListOfJobs);
 			mListOfJobsListView.setAdapter(mAdapter);
+			
+			//set a scroll listener
+			mListOfJobsListView.setOnScrollListener(new OnScrollListener() {
+				
+				@Override
+				public void onScrollStateChanged(AbsListView view, int scrollState) {
+					mCurrentScrollState = scrollState;
+					checkScrollCompleted();
+				}
+				
+				@Override
+				public void onScroll(AbsListView view, int firstVisibleItem,
+						int visibleItemCount, int totalItemCount) {
+						mNumberOfItemsFit = visibleItemCount;
+						mCurrentFirstVisibleItem = firstVisibleItem;
+						mTotalItemCount = totalItemCount;
+					
+				}
+				public void checkScrollCompleted() {
+					if (mCurrentFirstVisibleItem ==(mTotalItemCount - mNumberOfItemsFit)) {
+						if (mCurrentScrollState == SCROLL_STATE_IDLE) {
+							if (checkNextLink(mNextPageResponse)) {
+								showConnectingDialog(GETTING_MORE_JOBS);
+								ClickLink getDescription = new ClickLink();
+								getDescription.execute(new String[] {mNextLink, "WOOFWOOF"});		
+							}
+						}
+					}
+				}
+			});
+			
 			Log.w("SR", "list number:  " + mListOfJobsListView.getCount());
 			//listen for click event
 			mListOfJobsListView.setOnItemClickListener(new OnItemClickListener() {
@@ -158,7 +197,7 @@ public class SearchResults extends Activity {
 	
 	public void getJobs(String response) {
 		//get all of the jobs in this page view
-		Document doc = Jsoup.parse(mSearchResponse);
+		Document doc = Jsoup.parse(response);
 		Elements body = doc.getElementsByTag("tbody");
 		Element listOfJobs = body.get(3);
 		Elements groupOfJobs = listOfJobs.children(); //25 jobs
@@ -172,7 +211,7 @@ public class SearchResults extends Activity {
 		}
 	}
 	public void launchGetDescription(Job job) {
-		showConnectingDialog();
+		showConnectingDialog(GETTING_FULL_DESCRIPTION);
 		ClickLink getDescription = new ClickLink();
 		getDescription.execute(new String[] {job.mFullDescripLink});
 	}
@@ -203,11 +242,11 @@ public class SearchResults extends Activity {
 	    	if (response != null) {
 	    		//adding jobs to the list
 	    		if (mSearchResponse.contains("WOOFWOOF")) {
-	    			getJobs(mSearchResponse);
-	    			if (checkNextLink(response)) {
-	    				ClickLink getDescription = new ClickLink();
-	    				getDescription.execute(new String[] {mNextLink, "WOOFWOOF"});
-	    			}
+	    			//update this for scroll listener
+	    			mNextPageResponse = response;
+	    			getJobs(response);
+	    			pd.dismiss();
+	    			
 	    		}
 	    		else {
 	    			//getting the full description of a job
@@ -361,6 +400,7 @@ public class SearchResults extends Activity {
 		Elements links = pageLinks.select("a[href]");
 		int next = Integer.parseInt(currentPage) + 1;
 		boolean matchValue = false;
+		
 		for (Element link: links) {
 			String linkNumber = link.text();
 			try {
@@ -379,12 +419,16 @@ public class SearchResults extends Activity {
 		}
 		return matchValue;
 	}
-	public void showConnectingDialog() {
+	public void showConnectingDialog(int type) {
 		pd = new ProgressDialog(this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-        pd.setTitle("Connecting...");
+		if (type == GETTING_FULL_DESCRIPTION) {
+	        pd.setTitle("Connecting...");
+		}
+		else {
+			pd.setTitle("Getting more job results...");
+		}
         //make this a random fact later.  haha.
         pd.setMessage("Please wait.");
-        pd.setCancelable(false);
         pd.setIndeterminate(true);
         pd.show();
 	}
