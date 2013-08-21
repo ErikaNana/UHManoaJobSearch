@@ -1,4 +1,4 @@
-package edu.uhmanoa.jobsearch;
+package edu.uhmanoa.jobsearch.CustomComponents;
 
 public class Job {
 	String mTitle;
@@ -9,7 +9,9 @@ public class Job {
 	String mLocation;
 	String mRefNumber;
 	String mSkillMatches;
-	String mFullDescripLink;
+	public String mFullDescripLink;
+	public int mPayID;
+	public int mJobID;
 	
 	public static final int UHM = 1;
 	public static final int UHH = 2;
@@ -23,7 +25,7 @@ public class Job {
 	public static final int OTHER = 10;
 	
 	public Job(String title, String description, String program, String pay, String category, String location, 
-			String refNumber, String skillMatches, String fullDescrip) {
+			String refNumber, String skillMatches, String fullDescrip, int payID, int jobID) {
 		mTitle = title;
 		mDescription = description;
 		mProgram = program;
@@ -33,6 +35,8 @@ public class Job {
 		mRefNumber = refNumber;
 		mSkillMatches = skillMatches;
 		mFullDescripLink = fullDescrip;
+		mPayID = payID;
+		mJobID = jobID;
 	}
 	
 	public int whichIcon() {

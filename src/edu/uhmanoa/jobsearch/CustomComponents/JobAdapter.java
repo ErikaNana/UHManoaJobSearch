@@ -1,6 +1,11 @@
-package edu.uhmanoa.jobsearch;
+package edu.uhmanoa.jobsearch.CustomComponents;
 
 import java.util.ArrayList;
+
+import edu.uhmanoa.jobsearch.R;
+import edu.uhmanoa.jobsearch.R.drawable;
+import edu.uhmanoa.jobsearch.R.id;
+import edu.uhmanoa.jobsearch.R.layout;
 
 import android.app.Activity;
 import android.content.Context;

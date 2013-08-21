@@ -1,5 +1,8 @@
-package edu.uhmanoa.jobsearch;
+package edu.uhmanoa.jobsearch.CustomComponents;
 
+import edu.uhmanoa.jobsearch.R;
+import edu.uhmanoa.jobsearch.R.id;
+import edu.uhmanoa.jobsearch.R.layout;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;

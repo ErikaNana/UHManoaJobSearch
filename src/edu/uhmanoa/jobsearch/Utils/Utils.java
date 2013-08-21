@@ -1,4 +1,4 @@
-package edu.uhmanoa.jobsearch;
+package edu.uhmanoa.jobsearch.Utils;
 
 import java.util.HashMap;
 

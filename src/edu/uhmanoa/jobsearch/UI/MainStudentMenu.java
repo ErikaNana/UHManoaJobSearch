@@ -1,4 +1,4 @@
-package edu.uhmanoa.jobsearch;
+package edu.uhmanoa.jobsearch.UI;
 
 import java.util.HashMap;
 
@@ -10,6 +10,7 @@ import org.jsoup.select.Elements;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -24,6 +25,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import edu.uhmanoa.jobsearch.R;
+import edu.uhmanoa.jobsearch.CustomDialogs.ReLoginDialog;
+import edu.uhmanoa.jobsearch.Utils.Utils;
 
 public class MainStudentMenu extends Activity implements OnClickListener, OnItemSelectedListener {
 	String mWelcomeText;
@@ -34,6 +38,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 	TextView mWelcomeUser;
 	Button mSearchButton;
 	ProgressDialog pd;
+	Context mContext;
 	
 	EditText mSearchBox;
 	EditText mJobNumberBox;
@@ -84,6 +89,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 		//get the cookie for this session
 		mCookieValue = thisIntent.getStringExtra(Login.COOKIE_VALUE);
 		mLoginResponse = thisIntent.getStringExtra(Login.LOGIN_RESPONSE_STRING);
+		mContext = this;
 		
 		mUserName = "";
 		//Log.w("search", "cookie value:  " + mCookieValue);
@@ -168,7 +174,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 		    	if (response != null) {
 		    		//check if cookie error
 		    		if (response.contains("inactivity")) {
-		    			ReLogin reLoginDialog = new ReLogin(getBaseContext(), ReLogin.MAIN_STUDENT_MENU_CLASS,
+		    			ReLoginDialog reLoginDialog = new ReLoginDialog(mContext, ReLoginDialog.MAIN_STUDENT_MENU_CLASS,
 		    									null);
 		    			reLoginDialog.show();
 		    		}
@@ -367,7 +373,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					ReLogin reLoginDialog = new ReLogin(getBaseContext(), ReLogin.MAIN_STUDENT_MENU_CLASS, null);
+					ReLoginDialog reLoginDialog = new ReLoginDialog(mContext, ReLoginDialog.MAIN_STUDENT_MENU_CLASS, null);
 					reLoginDialog.show();
 				}
 			});

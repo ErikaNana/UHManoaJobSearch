@@ -1,4 +1,4 @@
-package edu.uhmanoa.jobsearch;
+package edu.uhmanoa.jobsearch.UI;
 
 import org.jsoup.Connection;
 import org.jsoup.Connection.Method;
@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import edu.uhmanoa.jobsearch.R;
 
 public class Login extends Activity implements OnClickListener{
 	

@@ -36,6 +36,8 @@
 	<!-- For the full dialog -->
 	<string name = "jobButtonText">Add to Job Cart</string>
 	<string name = "returnSearchText">Return to Search Results</string>
+	<!--  For ReLogin -->
+	<string name = "reloginErrorText">You must enter both a user name and a password to proceed</string>
 	<string-array name="jobProgramArray">
 		<item>All Programs</item>
 		<item>Full Time (FT)</item>

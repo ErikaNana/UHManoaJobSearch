@@ -1,4 +1,4 @@
-package edu.uhmanoa.jobsearch;
+package edu.uhmanoa.jobsearch.UI;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -13,6 +13,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
@@ -27,6 +28,12 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+import edu.uhmanoa.jobsearch.R;
+import edu.uhmanoa.jobsearch.CustomComponents.Job;
+import edu.uhmanoa.jobsearch.CustomComponents.JobAdapter;
+import edu.uhmanoa.jobsearch.CustomDialogs.FullDescriptionDialog;
+import edu.uhmanoa.jobsearch.CustomDialogs.ReLoginDialog;
 
 public class SearchResults extends Activity{
 	String mCookie;
@@ -41,9 +48,9 @@ public class SearchResults extends Activity{
 	ProgressDialog pd;
 	Job mJobLookingAt;
 	LinearLayout mFullDescripHolder;
-	Document doc;
+	Context mContext;
 	
-	//for the scroll view
+	//for the scroll view listener
 	int mCurrentVisibleItemCount;
 	int mCurrentScrollState;
 	int mTotalItemCount;
@@ -71,6 +78,7 @@ public class SearchResults extends Activity{
 		mNumberOfJobs = (TextView) findViewById(R.id.numberOfResults);
 		mListOfJobs = new ArrayList<Job>();
 		mFullDescripHolder = (LinearLayout) findViewById(R.id.fullDescriptionWindow);
+		mContext = this;
 		
 		//get the response and the cookie
 		Intent thisIntent = this.getIntent();
@@ -80,7 +88,7 @@ public class SearchResults extends Activity{
 		mLoginResponse = thisIntent.getStringExtra(Login.LOGIN_RESPONSE_STRING);
 		
 		//parse the header
-		doc = Jsoup.parse(mSearchResponse);
+		Document doc = Jsoup.parse(mSearchResponse);
 		Elements header = doc.getElementsByAttributeValue("class", "pagebanner");
 		Elements numbers = header.select("font");
 			
@@ -150,9 +158,14 @@ public class SearchResults extends Activity{
 					if (mCurrentFirstVisibleItem ==(mTotalItemCount - mNumberOfItemsFit)) {
 						if (mCurrentScrollState == SCROLL_STATE_IDLE) {
 							if (checkNextLink(mNextPageResponse)) {
-								showConnectingDialog(GETTING_MORE_JOBS);
-								ClickLink getDescription = new ClickLink();
-								getDescription.execute(new String[] {mNextLink, "WOOFWOOF"});		
+								if (pd != null && pd.isShowing()) {
+									return;
+								}
+								else {
+									showConnectingDialog(GETTING_MORE_JOBS);
+									ClickLink getDescription = new ClickLink();
+									getDescription.execute(new String[] {mNextLink, "WOOFWOOF"});			
+								}
 							}
 						}
 					}
@@ -178,7 +191,12 @@ public class SearchResults extends Activity{
 		String jobTitle = job.select("a[href]").get(0).text();
 		//get the full description link
 		String jobFullDescripLink = DOMAIN_NAME + job.select("a[href]").get(0).attr("href");
-
+		String[] split = jobFullDescripLink.split("=");
+		String getjobID = split[1].replaceAll("[^0-9]", "");
+		String getPayID = split[2].replaceAll("[^0-9]", "");
+		int jobID = Integer.parseInt(getjobID);
+		int payID = Integer.parseInt(getPayID);
+		
 		//get the job description preview
 		job.select("a[href]").remove(); //remove the links
 		String jobDescrip = attributes.get(0).text();
@@ -192,7 +210,7 @@ public class SearchResults extends Activity{
 		String jobRefNumber = attributes.get(5).text();
 		String jobSkillMatch = attributes.get(6).text();
 		return new Job(jobTitle, jobDescrip, jobProgram, jobPay, jobCategory, 
-				jobLocation, jobRefNumber, jobSkillMatch, jobFullDescripLink); 
+				jobLocation, jobRefNumber, jobSkillMatch, jobFullDescripLink, payID, jobID); 
 	}
 	
 	public void getJobs(String response) {
@@ -201,7 +219,7 @@ public class SearchResults extends Activity{
 		Elements body = doc.getElementsByTag("tbody");
 		Element listOfJobs = body.get(3);
 		Elements groupOfJobs = listOfJobs.children(); //25 jobs
-		Log.w("SR", "mAdapter:  " + mAdapter);
+
 		for (Element job: groupOfJobs) {
 			Job newJob = createJob(job);
 			mListOfJobs.add(newJob);
@@ -301,12 +319,13 @@ public class SearchResults extends Activity{
 				});
 			}
 			case EXPIRED_COOKIE_ERROR:{
+				Toast.makeText(getApplicationContext(), "EXPIRED COOKIE", Toast.LENGTH_SHORT).show();
 				builder.setMessage("Session has timed out");
 				builder.setPositiveButton("Login again", new OnClickListener() {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						ReLogin reLoginDialog = new ReLogin(getBaseContext(), ReLogin.SEARCH_RESULT_CLASS, mSearchResponse);
+						ReLoginDialog reLoginDialog = new ReLoginDialog(mContext, ReLoginDialog.SEARCH_RESULT_CLASS, mSearchResponse);
 						reLoginDialog.show();
 					}
 				});
@@ -316,7 +335,6 @@ public class SearchResults extends Activity{
 		AlertDialog dialog = builder.create();
 		//so dialog doesn't get closed when touched outside of it
 		dialog.setCanceledOnTouchOutside(false);
-
 		dialog.show();
 	}
 	/**Get the details for the full job listing*/
@@ -374,19 +392,19 @@ public class SearchResults extends Activity{
 				}
 				//add it to HashMap
 				listingDetails.put(category, detailString);
-				Log.w("SR", category + ": " + detailString);
 			}
 		}
 		return listingDetails;
 	}
 	public void showFullDescription(String response) {
-		Log.w("SR", "inactivity (showFull)" + response);
 		if (response.contains("inactivity")) {
+			Log.w("SR", "inactivity (showFull)");
 			showErrorDialog(EXPIRED_COOKIE_ERROR);
 		}
 		else {
 			Dialog fullDescription = new FullDescriptionDialog(this,
-					getDetails(response));
+					getDetails(response),mJobLookingAt.mJobID, mJobLookingAt.mPayID, 
+							   mCookie, mLoginResponse, mSearchResponse);
 			fullDescription.show();
 		}
 
@@ -425,7 +443,7 @@ public class SearchResults extends Activity{
 	        pd.setTitle("Connecting...");
 		}
 		else {
-			pd.setTitle("Getting more job results...");
+			pd.setTitle("There's more!");
 		}
         //make this a random fact later.  haha.
         pd.setMessage("Please wait.");
