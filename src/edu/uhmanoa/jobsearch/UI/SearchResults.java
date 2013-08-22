@@ -9,7 +9,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -29,14 +28,21 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+
 import edu.uhmanoa.jobsearch.R;
 import edu.uhmanoa.jobsearch.CustomComponents.Job;
 import edu.uhmanoa.jobsearch.CustomComponents.JobAdapter;
 import edu.uhmanoa.jobsearch.CustomDialogs.FullDescriptionDialog;
 import edu.uhmanoa.jobsearch.CustomDialogs.ReLoginDialog;
 
-public class SearchResults extends Activity{
+public class SearchResults extends SherlockActivity{
 	String mCookie;
+	//response of jobs in onCreate
 	String mSearchResponse;
 	String mLoginResponse;
 	ListView mListOfJobsListView;
@@ -49,7 +55,9 @@ public class SearchResults extends Activity{
 	Job mJobLookingAt;
 	LinearLayout mFullDescripHolder;
 	Context mContext;
-	
+	Menu nMenu;
+	//response when clicking an item
+	String mCurrentPostRequest;
 	//for the scroll view listener
 	int mCurrentVisibleItemCount;
 	int mCurrentScrollState;
@@ -68,6 +76,9 @@ public class SearchResults extends Activity{
 	public static final int GETTING_MORE_JOBS = 4;
 	public static final int GETTING_FULL_DESCRIPTION = 5;
 	
+	//for persisting data
+	public static final String SAVE_SEARCH_RESPONSE_STRING = "save search response string";
+	
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -83,107 +94,68 @@ public class SearchResults extends Activity{
 		//get the response and the cookie
 		Intent thisIntent = this.getIntent();
 		mCookie = thisIntent.getStringExtra(Login.COOKIE_VALUE);
-		mSearchResponse = thisIntent.getStringExtra(MainStudentMenu.SEARCH_RESPONSE_STRING);
+		if (mSearchResponse == null) {
+			Log.w("SR", "response is null");
+			mSearchResponse = this.getIntent().getStringExtra(SearchForm.SEARCH_RESPONSE_STRING);
+			Log.w("SR", "MSEARCH RESPONSE IS:  " + mSearchResponse);
+		}
+		
 		//need this in case of error
 		mLoginResponse = thisIntent.getStringExtra(Login.LOGIN_RESPONSE_STRING);
-		
-		//parse the header
-		Document doc = Jsoup.parse(mSearchResponse);
-		Elements header = doc.getElementsByAttributeValue("class", "pagebanner");
-		Elements numbers = header.select("font");
-			
-		if (numbers.isEmpty()) {
-			//check if in detailed listing
-			if(mSearchResponse.contains("Detailed")) {
-				Log.w("SR", "DETAILED LISTING!!!!");
-				//show full description
-				showFullDescription(mSearchResponse);
-			}
-			if (mSearchResponse.contains("inactivity")) {
-				Log.w("SR", "inactivity" + mSearchResponse);
-				showErrorDialog(EXPIRED_COOKIE_ERROR);
-			}
-			//show error dialog
-			if (mSearchResponse.contains("Nothing")) {
-				showErrorDialog(NO_RESULT_FOUND_ERROR);
-			}
-			else {
-				showErrorDialog(GENERAL_ERROR);
-			}
-		}
 	
-		else {
-			//set number of jobs and how many displaying
-			mNumberOfJobsFound = Integer.parseInt(numbers.get(0).text());
-		
-			//check if there was any search keywords
-			Elements searchForm = doc.getElementsByAttributeValue("name", "keywords");
-			//get the search term
-			String keyword = searchForm.attr("value");
-			//set the top right text
-			if (!keyword.isEmpty()) {
-				mNumberOfJobs.setText(mNumberOfJobsFound + " jobs found for \"" + keyword
-									 + "\"");
-			}
-			else {
-				mNumberOfJobs.setText(mNumberOfJobsFound + " jobs found"); 
-			}
+		//get the jobs in this initial page view
+		getJobs(mSearchResponse);
+		//initialize mNextPageResponse
+		mNextPageResponse = mSearchResponse;
+		//set the adapter
+		mAdapter = new JobAdapter(this, R.id.listOfJobs, mListOfJobs);
+		mListOfJobsListView.setAdapter(mAdapter);
 			
-			//get the jobs in this initial page view
-			getJobs(mSearchResponse);
-			//initialize mNextPageResponse
-			mNextPageResponse = mSearchResponse;
-			//set the adapter
-			mAdapter = new JobAdapter(this, R.id.listOfJobs, mListOfJobs);
-			mListOfJobsListView.setAdapter(mAdapter);
-			
-			//set a scroll listener
-			mListOfJobsListView.setOnScrollListener(new OnScrollListener() {
+		//set a scroll listener
+		mListOfJobsListView.setOnScrollListener(new OnScrollListener() {
 				
-				@Override
-				public void onScrollStateChanged(AbsListView view, int scrollState) {
-					mCurrentScrollState = scrollState;
-					checkScrollCompleted();
-				}
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+				mCurrentScrollState = scrollState;
+				checkScrollCompleted();
+			}
 				
-				@Override
-				public void onScroll(AbsListView view, int firstVisibleItem,
-						int visibleItemCount, int totalItemCount) {
-						mNumberOfItemsFit = visibleItemCount;
-						mCurrentFirstVisibleItem = firstVisibleItem;
-						mTotalItemCount = totalItemCount;
-					
-				}
-				public void checkScrollCompleted() {
-					if (mCurrentFirstVisibleItem ==(mTotalItemCount - mNumberOfItemsFit)) {
-						if (mCurrentScrollState == SCROLL_STATE_IDLE) {
-							if (checkNextLink(mNextPageResponse)) {
-								if (pd != null && pd.isShowing()) {
-									return;
-								}
-								else {
-									showConnectingDialog(GETTING_MORE_JOBS);
-									ClickLink getDescription = new ClickLink();
-									getDescription.execute(new String[] {mNextLink, "WOOFWOOF"});			
-								}
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem,
+					int visibleItemCount, int totalItemCount) {
+					mNumberOfItemsFit = visibleItemCount;
+					mCurrentFirstVisibleItem = firstVisibleItem;
+					mTotalItemCount = totalItemCount;
+				
+			}
+			public void checkScrollCompleted() {
+				if (mCurrentFirstVisibleItem ==(mTotalItemCount - mNumberOfItemsFit)) {
+					if (mCurrentScrollState == SCROLL_STATE_IDLE) {
+						if (checkNextLink(mNextPageResponse)) {
+							if (pd != null && pd.isShowing()) {
+								return;
+							}
+							else {
+								showConnectingDialog(GETTING_MORE_JOBS);
+								ClickLink getDescription = new ClickLink();
+								getDescription.execute(new String[] {mNextLink, "WOOFWOOF"});			
 							}
 						}
 					}
 				}
-			});
+			}
+		});
 			
-			Log.w("SR", "list number:  " + mListOfJobsListView.getCount());
-			//listen for click event
-			mListOfJobsListView.setOnItemClickListener(new OnItemClickListener() {
+		//listen for click event
+		mListOfJobsListView.setOnItemClickListener(new OnItemClickListener() {
 	 
-				@Override
-				public void onItemClick(AdapterView<?> parent, View view, int position,
-						long id) {
-					mJobLookingAt = (Job) mListOfJobsListView.getItemAtPosition(position);
-					launchGetDescription(mJobLookingAt);
-				}		
-			});			
-		}
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position,
+					long id) {
+				mJobLookingAt = (Job) mListOfJobsListView.getItemAtPosition(position);
+				launchGetDescription(mJobLookingAt);
+			}		
+		});			
 	}
 	public Job createJob(Element job) {
 		Elements attributes = job.getElementsByTag("td"); //7 attributes
@@ -242,11 +214,11 @@ public class SearchResults extends Activity{
 							   .timeout(5000)
 							   .cookie(Login.COOKIE_TYPE, mCookie)
 							   .get();
-					mSearchResponse = doc.toString();
+					mCurrentPostRequest = doc.toString();
 					if (html.length == 2) {
-						mSearchResponse = mSearchResponse + "WOOFWOOF";
+						mCurrentPostRequest = mCurrentPostRequest + "WOOFWOOF";
 					}
-					return mSearchResponse;
+					return mCurrentPostRequest;
 					/*//Log.w("MSTD", "response:  " + doc.text());*/
 				} catch (Exception e) { 
 					Log.e("SR", "EXCEPTION!!!!");
@@ -259,7 +231,7 @@ public class SearchResults extends Activity{
 	    protected void onPostExecute(String response) {
 	    	if (response != null) {
 	    		//adding jobs to the list
-	    		if (mSearchResponse.contains("WOOFWOOF")) {
+	    		if (mCurrentPostRequest.contains("WOOFWOOF")) {
 	    			//update this for scroll listener
 	    			mNextPageResponse = response;
 	    			getJobs(response);
@@ -304,7 +276,7 @@ public class SearchResults extends Activity{
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						//go back to search
-						Intent intent = new Intent(getBaseContext(), MainStudentMenu.class);
+						Intent intent = new Intent(getBaseContext(), SearchForm.class);
 						intent.putExtra(Login.COOKIE_VALUE, mCookie);
 						intent.putExtra(Login.LOGIN_RESPONSE_STRING, mLoginResponse);
 					    startActivity(intent);
@@ -319,23 +291,10 @@ public class SearchResults extends Activity{
 				});
 			}
 			case EXPIRED_COOKIE_ERROR:{
-				Toast.makeText(getApplicationContext(), "EXPIRED COOKIE", Toast.LENGTH_SHORT).show();
-				builder.setMessage("Session has timed out");
-				builder.setPositiveButton("Login again", new OnClickListener() {
-					
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						ReLoginDialog reLoginDialog = new ReLoginDialog(mContext, ReLoginDialog.SEARCH_RESULT_CLASS, mSearchResponse);
-						reLoginDialog.show();
-					}
-				});
+				ReLoginDialog reLoginDialog = new ReLoginDialog(mContext, ReLoginDialog.SEARCH_RESULT_CLASS, mSearchResponse);
+				reLoginDialog.show();
 			}
 		}
-
-		AlertDialog dialog = builder.create();
-		//so dialog doesn't get closed when touched outside of it
-		dialog.setCanceledOnTouchOutside(false);
-		dialog.show();
 	}
 	/**Get the details for the full job listing*/
 	public LinkedHashMap<String,String> getDetails(String response) {
@@ -449,5 +408,114 @@ public class SearchResults extends Activity{
         pd.setMessage("Please wait.");
         pd.setIndeterminate(true);
         pd.show();
+	}
+	/////////////////////// Methods for the menu ///////////////////////////////
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getSupportMenuInflater();
+		//menu is menu to inflate to
+		inflater.inflate(R.menu.menu_layout, menu);
+		nMenu = menu;
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+			case R.id.subTitle:{
+				Toast.makeText(this, "title", Toast.LENGTH_SHORT).show();
+				break;
+			}
+			case R.id.subProgram:{
+				Toast.makeText(this, "program", Toast.LENGTH_SHORT).show();
+				break;
+			}
+			case R.id.subPay:{
+				Toast.makeText(this, "pay", Toast.LENGTH_SHORT).show();
+				break;
+			}
+			case R.id.subCategory:{
+				Toast.makeText(this, "category", Toast.LENGTH_SHORT).show();
+				break;
+			}
+			case R.id.subLocation:{
+				Toast.makeText(this, "location", Toast.LENGTH_SHORT).show();
+				break;
+			}
+			case R.id.subReferral:{
+				Toast.makeText(this, "referral", Toast.LENGTH_SHORT).show();
+				break;
+			}
+			case R.id.menu_help:{
+				Toast.makeText(this, "help", Toast.LENGTH_SHORT).show();
+				break;
+			}
+		}
+		return false;
+	}
+	//need to preserve mSearchResponse to use in ReLogin
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putString(SAVE_SEARCH_RESPONSE_STRING, mSearchResponse);
+		Log.w("SR", "on save Instance state");
+	}
+	
+	//restore mSearchResponse
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+		mSearchResponse = savedInstanceState.getString(SAVE_SEARCH_RESPONSE_STRING);
+		Log.w("SR", "onRestoreState");
+/*		Log.w("SR", mSearchResponse);*/
+	}
+	
+	protected void onResume() {
+		Log.w("SR", "onResume");
+		super.onResume();
+		//parse the header
+		Document doc = Jsoup.parse(mSearchResponse);
+		Elements header = doc.getElementsByAttributeValue("class", "pagebanner");
+		Elements numbers = header.select("font");
+		
+		//no links
+		if (numbers.isEmpty()) {
+			//check if in detailed listing
+			if(mSearchResponse.contains("Detailed")) {
+				//do nothing for now
+/*				Log.w("SR", "DETAILED LISTING!!!!");
+				//show full description
+				showFullDescription(mSearchResponse);*/
+			}
+			if (mSearchResponse.contains("inactivity")) {
+				Log.w("SR", "inactivity" + mSearchResponse);
+				showErrorDialog(EXPIRED_COOKIE_ERROR);
+			}
+			//show error dialog
+			if (mSearchResponse.contains("Nothing")) {
+				showErrorDialog(NO_RESULT_FOUND_ERROR);
+			}
+			else {
+				showErrorDialog(GENERAL_ERROR);
+			}
+		}
+		else {
+			//set number of jobs and how many displaying
+			mNumberOfJobsFound = Integer.parseInt(numbers.get(0).text());
+				
+			//check if there was any search keywords
+			Elements searchForm = doc.getElementsByAttributeValue("name", "keywords");
+			//get the search term
+			String keyword = searchForm.attr("value");
+			//set the top right text
+			if (!keyword.isEmpty()) {
+				mNumberOfJobs.setText(mNumberOfJobsFound + " jobs found for \"" + keyword
+									 + "\"");
+			}
+			else {
+				mNumberOfJobs.setText(mNumberOfJobsFound + " jobs found"); 
+			}
+		}
+
 	}
 }

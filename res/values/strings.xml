@@ -38,6 +38,17 @@
 	<string name = "returnSearchText">Return to Search Results</string>
 	<!--  For ReLogin -->
 	<string name = "reloginErrorText">You must enter both a user name and a password to proceed</string>
+	<!-- For the menu -->
+	<string name = "menu_sort">Sort</string>
+	<string name = "menu_help">Help</string>
+	<string name = "menu_main">Student Main</string>
+	<string name = "sub_title">Title</string>
+	<string name = "sub_program">Program</string>
+	<string name = "sub_pay">Pay</string>
+	<string name = "sub_category">Category</string>
+	<string name = "sub_location">Location</string>
+	<string name = "sub_referral">Number of Referrals</string>
+	<!--  For the search form -->
 	<string-array name="jobProgramArray">
 		<item>All Programs</item>
 		<item>Full Time (FT)</item>

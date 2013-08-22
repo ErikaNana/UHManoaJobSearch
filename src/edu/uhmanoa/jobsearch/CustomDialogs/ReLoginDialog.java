@@ -18,7 +18,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import edu.uhmanoa.jobsearch.R;
 import edu.uhmanoa.jobsearch.UI.Login;
-import edu.uhmanoa.jobsearch.UI.MainStudentMenu;
+import edu.uhmanoa.jobsearch.UI.SearchForm;
 import edu.uhmanoa.jobsearch.UI.SearchResults;
 
 /**This class logins, gets the cookie, and goes back to the class that called it*/
@@ -37,7 +37,7 @@ public class ReLoginDialog extends Dialog implements OnClickListener{
 	int mCallingClass;
 	
 	public static final int SEARCH_RESULT_CLASS = 1;
-	public static final int MAIN_STUDENT_MENU_CLASS = 2;
+	public static final int SEARCH_FORM_CLASS = 2;
 	
 	public ReLoginDialog(Context context, int callingClass, String searchResponse) {
 		super(context);
@@ -45,7 +45,7 @@ public class ReLoginDialog extends Dialog implements OnClickListener{
 		mCallingClass = callingClass;
 		mSearchResponse = searchResponse;
 		
-		setTitle("ReLogin");
+		setTitle("Session has expired.  Please login.");
 		setContentView(R.layout.relogin);
 		
 		mErrorText = (TextView) findViewById(R.id.errorDisplay);
@@ -95,7 +95,8 @@ public class ReLoginDialog extends Dialog implements OnClickListener{
 				 	
 				 	//get the cookie
 					mNewCookieValue = res.cookie(Login.COOKIE_TYPE);
-					Log.w("RL", "response:  " + mNewCookieValue);
+/*					Log.w("RL", "response:  " + mSearchResponse);*/
+					return mLoginResponse;
 					
 			} 
 			catch (Exception e) { //catch all exceptions
@@ -112,22 +113,22 @@ public class ReLoginDialog extends Dialog implements OnClickListener{
 	    			mErrorText.setVisibility(View.GONE);
     			}
 	    		//go back to the activity that called this error
-	    		if (response.contains("Welcome")) {
+	    		if (response.contains("All Programs")) {
 		    		Intent intent = null;
 		    		switch(mCallingClass) {
 			    		case SEARCH_RESULT_CLASS:{
 			    			Log.w("RL", "launching search result");
 			    			intent = new Intent(mContext, SearchResults.class);
 				    		intent.putExtra(Login.COOKIE_VALUE, mNewCookieValue);
-				    		intent.putExtra(MainStudentMenu.SEARCH_RESPONSE_STRING, mSearchResponse);
-				    		intent.putExtra(Login.LOGIN_RESPONSE_STRING, mLoginResponse);
+				    		intent.putExtra(Login.LOGIN_RESPONSE_STRING, response);
+				    		intent.putExtra(SearchForm.SEARCH_RESPONSE_STRING, mSearchResponse);
 				    		break;
 			    		}
-			    		case MAIN_STUDENT_MENU_CLASS:{
+			    		case SEARCH_FORM_CLASS:{
 			    			Log.w("RL", "launching MSM");
-			    			intent = new Intent(mContext,MainStudentMenu.class);
+			    			intent = new Intent(mContext,SearchForm.class);
 			    			intent.putExtra(Login.COOKIE_VALUE, mNewCookieValue);
-			    			intent.putExtra(Login.LOGIN_RESPONSE_STRING, mLoginResponse);
+			    			intent.putExtra(Login.LOGIN_RESPONSE_STRING, response);
 			    		break;
 			    		}	
 		    		}

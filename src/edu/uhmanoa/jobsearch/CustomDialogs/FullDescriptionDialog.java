@@ -7,15 +7,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import edu.uhmanoa.jobsearch.R;
-import edu.uhmanoa.jobsearch.CustomComponents.FullDescriptionRowView;
-import edu.uhmanoa.jobsearch.R.id;
-import edu.uhmanoa.jobsearch.R.layout;
-import edu.uhmanoa.jobsearch.R.string;
-import edu.uhmanoa.jobsearch.UI.Login;
-import edu.uhmanoa.jobsearch.UI.MainStudentMenu;
-import edu.uhmanoa.jobsearch.UI.SearchResults;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -29,6 +20,11 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import edu.uhmanoa.jobsearch.R;
+import edu.uhmanoa.jobsearch.CustomComponents.FullDescriptionRowView;
+import edu.uhmanoa.jobsearch.UI.Login;
+import edu.uhmanoa.jobsearch.UI.SearchForm;
+import edu.uhmanoa.jobsearch.UI.SearchResults;
 
 public class FullDescriptionDialog extends Dialog implements OnClickListener{
 	Context mContext;
@@ -74,16 +70,15 @@ public class FullDescriptionDialog extends Dialog implements OnClickListener{
 
 	@Override
 	public void onClick(View view) {
-		this.dismiss();
-		pd = new ProgressDialog(mContext, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-		pd.setTitle("Connecting...");
-        //make this a random fact later.  haha.
-        pd.setMessage("Please wait.");
-        pd.setIndeterminate(true);
-        pd.show();
 		switch(view.getId()) {
 			case R.id.addToJobCartButton:{
-
+				pd = new ProgressDialog(mContext, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+				pd.setTitle("Connecting...");
+		        //make this a random fact later.  haha.
+		        pd.setMessage("Please wait.");
+		        pd.setIndeterminate(true);
+		        pd.show();
+		        
 				Log.w("FDD", "jobID:  " + mJobID);
 				Log.w("FDD", "payID:  " + mPayID);
 				//get the response
@@ -168,7 +163,7 @@ public class FullDescriptionDialog extends Dialog implements OnClickListener{
 						Intent intent = new Intent(mContext, SearchResults.class);
 						intent.putExtra(Login.COOKIE_VALUE, mCookie);
 						intent.putExtra(Login.LOGIN_RESPONSE_STRING, mLoginResponse);
-						intent.putExtra(MainStudentMenu.SEARCH_RESPONSE_STRING, mSearchResponse);
+						intent.putExtra(SearchForm.SEARCH_RESPONSE_STRING, mSearchResponse);
 					    mContext.startActivity(intent);
 					}
 				});

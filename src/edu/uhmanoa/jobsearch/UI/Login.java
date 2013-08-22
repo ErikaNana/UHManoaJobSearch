@@ -188,8 +188,8 @@ public class Login extends Activity implements OnClickListener{
 	}
 	
 	public void launchMainStudentMenu() {
-		Intent launchStudentMenu = new Intent(this,MainStudentMenu.class);
-		launchStudentMenu.putExtra(COOKIE_VALUE, mCookieValue);
+		Intent launchStudentMenu = new Intent(this,SearchForm.class);
+		launchStudentMenu.putExtra(COOKIE_VALUE, "kdajfl");
 		launchStudentMenu.putExtra(LOGIN_RESPONSE_STRING, mLoginResponse);
     	startActivity(launchStudentMenu);
 	}

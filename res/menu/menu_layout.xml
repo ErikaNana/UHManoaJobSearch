@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item 
+        android:id="@+id/menu_sort_results"
+        android:showAsAction="always"
+        android:title="@string/menu_sort">
+        <menu>
+            <group android:id="@+id/group_submenu">
+				<item android:id = "@+id/subTitle" android:title = "@string/sub_title" />
+				<item android:id="@+id/subProgram" android:title="@string/sub_program" />
+				<item android:id="@+id/subPay" android:title="@string/sub_pay" />
+				<item android:id="@+id/subCategory" android:title="@string/sub_category" />
+				<item android:id="@+id/subLocation" android:title="@string/sub_location" />
+				<item android:id="@+id/subReferral" android:title="@string/sub_referral" />"
+			</group>"
+        </menu>
+    </item>
+    <item 
+        android:id="@+id/menu_help"
+        android:showAsAction="always"
+        android:title="@string/menu_help"/>
+    <item 
+        android:id="@+id/menu_main"
+        android:showAsAction="ifRoom"
+        android:title="@string/menu_main"/>
+</menu>

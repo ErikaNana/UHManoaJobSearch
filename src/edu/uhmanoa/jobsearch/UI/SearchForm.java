@@ -29,7 +29,7 @@ import edu.uhmanoa.jobsearch.R;
 import edu.uhmanoa.jobsearch.CustomDialogs.ReLoginDialog;
 import edu.uhmanoa.jobsearch.Utils.Utils;
 
-public class MainStudentMenu extends Activity implements OnClickListener, OnItemSelectedListener {
+public class SearchForm extends Activity implements OnClickListener, OnItemSelectedListener {
 	String mWelcomeText;
 	String mSearchResponse;
 	String mLoginResponse;
@@ -80,6 +80,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 	public static final int POSTINGS_SPINNER = 6;
 	public static final int ELIGIBILITY_SPINNER = 7;
 	
+	//need to preserve search response string
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -174,16 +175,19 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 		    	if (response != null) {
 		    		//check if cookie error
 		    		if (response.contains("inactivity")) {
-		    			ReLoginDialog reLoginDialog = new ReLoginDialog(mContext, ReLoginDialog.MAIN_STUDENT_MENU_CLASS,
+		    			ReLoginDialog reLoginDialog = new ReLoginDialog(mContext, ReLoginDialog.SEARCH_FORM_CLASS,
 		    									null);
 		    			reLoginDialog.show();
+		    			return;
 		    		}
 			    	//start the search activity
-		    		Intent launchStudentMenu = new Intent(getApplicationContext(),SearchResults.class);
-		    		launchStudentMenu.putExtra(Login.COOKIE_VALUE, mCookieValue);
-		    		launchStudentMenu.putExtra(SEARCH_RESPONSE_STRING, mSearchResponse);
-		    		launchStudentMenu.putExtra(Login.LOGIN_RESPONSE_STRING, mLoginResponse);
-		        	startActivity(launchStudentMenu);
+		    		Intent launchSearch = new Intent(getApplicationContext(),SearchResults.class);
+/*		    		launchSearch.putExtra(Login.COOKIE_VALUE, mCookieValue);*/
+		    		launchSearch.putExtra(Login.COOKIE_VALUE, "alkdfjladskfj");
+		    		Log.w("SR", mSearchResponse);
+		    		launchSearch.putExtra(SEARCH_RESPONSE_STRING, mSearchResponse);
+		    		launchSearch.putExtra(Login.LOGIN_RESPONSE_STRING, mLoginResponse);
+		        	startActivity(launchSearch);
 		    	}
 		    	else { //exception thrown
 		    		showErrorDialog(CONNECTION_ERROR);
@@ -373,7 +377,7 @@ public class MainStudentMenu extends Activity implements OnClickListener, OnItem
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					ReLoginDialog reLoginDialog = new ReLoginDialog(mContext, ReLoginDialog.MAIN_STUDENT_MENU_CLASS, null);
+					ReLoginDialog reLoginDialog = new ReLoginDialog(mContext, ReLoginDialog.SEARCH_FORM_CLASS, null);
 					reLoginDialog.show();
 				}
 			});
